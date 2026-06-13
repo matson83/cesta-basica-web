@@ -9,6 +9,7 @@
             <nav class="hidden md:flex items-center gap-1">
                 @foreach ([
                     ['route' => 'dashboard', 'label' => 'Dashboard', 'match' => 'dashboard'],
+                    ['route' => 'cestas-basicas.index', 'label' => 'Cestas', 'match' => 'cestas-basicas.*'],
                     ['route' => 'produtos.index', 'label' => 'Produtos', 'match' => 'produtos.*'],
                     ['route' => 'familias.index', 'label' => 'Famílias', 'match' => 'familias.*'],
                     ['route' => 'distribuicoes.index', 'label' => 'Distribuições', 'match' => 'distribuicoes.*'],
@@ -38,6 +39,7 @@
                 <nav class="absolute right-0 top-full mt-2 w-48 bg-white border border-[#e3e3e0] rounded-md shadow-lg py-1 z-50">
                     @foreach ([
                         ['route' => 'dashboard', 'label' => 'Dashboard', 'match' => 'dashboard'],
+                        ['route' => 'cestas-basicas.index', 'label' => 'Cestas', 'match' => 'cestas-basicas.*'],
                         ['route' => 'produtos.index', 'label' => 'Produtos', 'match' => 'produtos.*'],
                         ['route' => 'familias.index', 'label' => 'Famílias', 'match' => 'familias.*'],
                         ['route' => 'distribuicoes.index', 'label' => 'Distribuições', 'match' => 'distribuicoes.*'],

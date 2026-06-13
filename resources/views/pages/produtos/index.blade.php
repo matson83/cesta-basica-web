@@ -47,34 +47,34 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[#e3e3e0]">
-                    @foreach ([
-                        ['nome' => 'Arroz branco 5kg', 'cat' => 'Grãos e cereais', 'un' => 'pacote', 'estoque' => 85, 'qtd' => 1, 'ok' => true],
-                        ['nome' => 'Feijão carioca 1kg', 'cat' => 'Grãos e cereais', 'un' => 'pacote', 'estoque' => 120, 'qtd' => 2, 'ok' => true],
-                        ['nome' => 'Óleo de soja 900ml', 'cat' => 'Alimentos', 'un' => 'unidade', 'estoque' => 12, 'qtd' => 1, 'ok' => false],
-                        ['nome' => 'Açúcar cristal 1kg', 'cat' => 'Alimentos', 'un' => 'pacote', 'estoque' => 64, 'qtd' => 1, 'ok' => true],
-                        ['nome' => 'Macarrão espaguete 500g', 'cat' => 'Grãos e cereais', 'un' => 'pacote', 'estoque' => 98, 'qtd' => 2, 'ok' => true],
-                        ['nome' => 'Café torrado 500g', 'cat' => 'Bebidas', 'un' => 'pacote', 'estoque' => 8, 'qtd' => 1, 'ok' => false],
-                        ['nome' => 'Sabão em barra', 'cat' => 'Higiene', 'un' => 'unidade', 'estoque' => 200, 'qtd' => 4, 'ok' => true],
-                        ['nome' => 'Leite em pó 400g', 'cat' => 'Alimentos', 'un' => 'lata', 'estoque' => 18, 'qtd' => 1, 'ok' => 'warn'],
-                    ] as $produto)
+                    @forelse ($produtos as $produto)
                         <tr class="hover:bg-[#FDFDFC]">
-                            <td class="py-3 font-medium">{{ $produto['nome'] }}</td>
-                            <td class="py-3 text-[#706f6c]">{{ $produto['cat'] }}</td>
-                            <td class="py-3 text-[#706f6c]">{{ $produto['un'] }}</td>
+                            <td class="py-3 font-medium">{{ $produto->nome }}</td>
+                            <td class="py-3 text-[#706f6c]">{{ $produto->categoria }}</td>
+                            <td class="py-3 text-[#706f6c]">{{ $produto->unidade }}</td>
                             <td class="py-3">
                                 <span @class([
                                     'text-xs font-medium px-2 py-0.5 rounded-sm',
-                                    'bg-emerald-50 text-emerald-700' => $produto['ok'] === true,
-                                    'bg-red-50 text-[#f53003]' => $produto['ok'] === false,
-                                    'bg-amber-50 text-amber-700' => $produto['ok'] === 'warn',
-                                ])>{{ $produto['estoque'] }}</span>
+                                    'bg-emerald-50 text-emerald-700' => $produto->estoque > 20,
+                                    'bg-amber-50 text-amber-700' => $produto->estoque > 10 && $produto->estoque <= 20,
+                                    'bg-red-50 text-[#f53003]' => $produto->estoque <= 10,
+                                ])>{{ $produto->estoque }}</span>
                             </td>
-                            <td class="py-3">{{ $produto['qtd'] }}</td>
+                            <td class="py-3">{{ $produto->quantidade_por_cesta }}</td>
                             <td class="py-3 text-right">
-                                <button class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Editar</button>
+                                <form action="{{ route('produtos.destroy', $produto) }}" method="POST" class="inline"
+                                      onsubmit="return confirm('Remover este produto?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Remover</button>
+                                </form>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="6" class="py-6 text-center text-[#706f6c]">Nenhum produto cadastrado.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -82,49 +82,52 @@
 @endsection
 
 @push('modals')
-    <dialog id="modalProduto" data-form-dialog
+    <dialog id="modalProduto" data-form-dialog @if ($errors->any() && old('nome')) data-reopen="true" @endif
             class="backdrop:bg-black/40 bg-transparent p-0 max-w-md w-full rounded-lg open:animate-in">
         <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-6">
             <div class="flex items-center justify-between mb-5">
                 <h2 class="text-base font-semibold">Novo produto</h2>
                 <button type="button" data-dialog-close class="text-[#706f6c] hover:text-[#1b1b18] text-xl leading-none">&times;</button>
             </div>
-            <form class="space-y-4">
+            <form action="{{ route('produtos.store') }}" method="POST" class="space-y-4">
+                @csrf
                 <div>
                     <label for="nomeProduto" class="block text-sm font-medium mb-1">Nome do produto</label>
-                    <input type="text" id="nomeProduto" required placeholder="Ex: Arroz branco 5kg"
+                    <input type="text" id="nomeProduto" name="nome" value="{{ old('nome') }}" required placeholder="Ex: Arroz branco 5kg"
                            class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label for="categoriaProduto" class="block text-sm font-medium mb-1">Categoria</label>
-                        <select id="categoriaProduto" required class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
+                        <select id="categoriaProduto" name="categoria" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                             <option value="">Selecione...</option>
-                            <option>Grãos e cereais</option>
-                            <option>Proteínas</option>
-                            <option>Alimentos</option>
-                            <option>Higiene</option>
-                            <option>Bebidas</option>
+                            @foreach (['Grãos e cereais', 'Proteínas', 'Alimentos', 'Higiene', 'Bebidas'] as $cat)
+                                <option value="{{ $cat }}" @selected(old('categoria') === $cat)>{{ $cat }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div>
                         <label for="unidadeProduto" class="block text-sm font-medium mb-1">Unidade</label>
-                        <select id="unidadeProduto" required class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
+                        <select id="unidadeProduto" name="unidade" required class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                             <option value="">Selecione...</option>
-                            <option>unidade</option>
-                            <option>pacote</option>
-                            <option>lata</option>
-                            <option>caixa</option>
+                            @foreach (['unidade', 'pacote', 'lata', 'caixa'] as $un)
+                                <option value="{{ $un }}" @selected(old('unidade') === $un)>{{ $un }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div>
                         <label for="estoqueProduto" class="block text-sm font-medium mb-1">Estoque inicial</label>
-                        <input type="number" id="estoqueProduto" min="0" value="0" required
+                        <input type="number" id="estoqueProduto" name="estoque" min="0" value="{{ old('estoque', 0) }}" required
                                class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                     </div>
                     <div>
                         <label for="qtdCesta" class="block text-sm font-medium mb-1">Qtd. por cesta</label>
-                        <input type="number" id="qtdCesta" min="1" value="1" required
+                        <input type="number" id="qtdCesta" name="quantidade_por_cesta" min="1" value="{{ old('quantidade_por_cesta', 1) }}" required
+                               class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
+                    </div>
+                    <div>
+                        <label for="precoProduto" class="block text-sm font-medium mb-1">Preço (R$)</label>
+                        <input type="number" id="precoProduto" name="preco" min="0" step="0.01" value="{{ old('preco', 0) }}"
                                class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                     </div>
                 </div>

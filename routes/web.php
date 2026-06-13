@@ -1,28 +1,35 @@
 <?php
 
+use App\Http\Controllers\CestaBasicaController;
+use App\Http\Controllers\DistribuicaoController;
+use App\Http\Controllers\FamiliaController;
+use App\Http\Controllers\PagamentoController;
+use App\Http\Controllers\ProdutoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('pages.dashboard'))->name('dashboard');
 
-Route::prefix('produtos')->name('produtos.')->group(function () {
-    Route::get('/', fn () => view('pages.produtos.index'))->name('index');
-});
+Route::resource('produtos', ProdutoController::class)
+    ->only(['index', 'store', 'update', 'destroy']);
 
-Route::prefix('familias')->name('familias.')->group(function () {
-    Route::get('/', fn () => view('pages.familias.index'))->name('index');
-});
+Route::resource('familias', FamiliaController::class)
+    ->only(['index', 'store', 'update', 'destroy']);
 
-Route::prefix('distribuicoes')->name('distribuicoes.')->group(function () {
-    Route::get('/', fn () => view('pages.distribuicoes.index'))->name('index');
+Route::resource('distribuicoes', DistribuicaoController::class)
+    ->only(['index', 'store', 'update', 'destroy']);
+
+Route::resource('cestas-basicas', CestaBasicaController::class);
+
+/* Pagamentos (gateway Confrapix) */
+Route::controller(PagamentoController::class)->group(function () {
+    Route::post('distribuicoes/{distribuicao}/pagar', 'pagar')->name('pagamentos.pagar');
+    Route::get('pagamentos/{pagamento}/pix', 'pix')->name('pagamentos.pix');
+    Route::get('pagamentos/{pagamento}/status', 'status')->name('pagamentos.status');
 });
 
 /* Preview routes for cestas-basicas views (frontend-only, temporary) */
 Route::prefix('preview')->name('preview.')->group(function () {
-    Route::view('cestas', 'pages.cestas-basicas.index')->name('cestas');
     Route::view('dashboard', 'pages.cestas-basicas.dashboard')->name('dashboard');
-    Route::view('show', 'pages.cestas-basicas.show')->name('show');
     Route::view('cart', 'pages.cestas-basicas.cart')->name('cart');
-    Route::view('checkout', 'pages.cestas-basicas.checkout')->name('checkout');
-    Route::view('pix', 'pages.cestas-basicas.pix')->name('pix');
     Route::view('history', 'pages.cestas-basicas.history')->name('history');
 });

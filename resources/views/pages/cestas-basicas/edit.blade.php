@@ -8,39 +8,33 @@
         <p class="text-[#706f6c] text-sm">Edição visual (mock) da cesta</p>
     </div>
 
-    @php
-        $cesta = [
-            'nome' => 'Cesta Família Básica',
-            'descricao' => 'Composição padrão para famílias de 4 pessoas.',
-            'produtos' => [
-                ['id'=>1,'nome'=>'Arroz 5kg','preco'=>25.00,'qtd'=>1],
-                ['id'=>2,'nome'=>'Feijão 1kg','preco'=>8.50,'qtd'=>2],
-                ['id'=>3,'nome'=>'Óleo 900ml','preco'=>6.00,'qtd'=>1],
-            ],
-        ];
-    @endphp
-
-    <form class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-6" onsubmit="event.preventDefault(); alert('Mock: alteracoes nao persistem.');">
+    <form action="{{ route('cestas-basicas.update', $cesta) }}" method="POST" class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-6">
+        @csrf
+        @method('PUT')
         <div class="grid grid-cols-1 gap-4">
             <div>
                 <label class="block text-sm font-medium mb-1">Nome da cesta</label>
-                <input id="nomeCesta" value="{{ $cesta['nome'] }}" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2">
+                <input id="nomeCesta" name="nome" value="{{ old('nome', $cesta->nome) }}" required class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2">
             </div>
             <div>
                 <label class="block text-sm font-medium mb-1">Descrição</label>
-                <textarea id="descCesta" rows="2" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2">{{ $cesta['descricao'] }}</textarea>
+                <textarea id="descCesta" name="descricao" rows="2" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2">{{ old('descricao', $cesta->descricao) }}</textarea>
             </div>
 
             <div>
                 <p class="text-sm font-medium mb-2">Produtos</p>
                 <div class="space-y-2">
-                    @foreach ($cesta['produtos'] as $p)
+                    @forelse ($produtos as $p)
+                        @php $pivot = $cesta->produtos->firstWhere('id', $p->id)?->pivot; @endphp
                         <label class="flex items-center gap-3">
-                            <span class="flex-1">{{ $p['nome'] }}</span>
-                            <input name="product[{{ $p['id'] }}][qty]" type="number" min="0" value="{{ $p['qtd'] }}" class="w-20 text-sm border border-[#e3e3e0] rounded-sm px-2 py-1 produto-qtd" data-preco="{{ $p['preco'] }}">
-                            <span class="w-24 text-right">R$ {{ number_format($p['preco'],2,',','.') }}</span>
+                            <input type="checkbox" name="product[{{ $p->id }}][selected]" value="1" data-preco="{{ $p->preco }}" class="produto-check" @checked($pivot)>
+                            <span class="flex-1">{{ $p->nome }}</span>
+                            <input name="product[{{ $p->id }}][qty]" type="number" min="0" value="{{ $pivot->quantidade ?? 0 }}" class="w-20 text-sm border border-[#e3e3e0] rounded-sm px-2 py-1 produto-qtd" data-preco="{{ $p->preco }}">
+                            <span class="w-24 text-right">R$ {{ number_format($p->preco, 2, ',', '.') }}</span>
                         </label>
-                    @endforeach
+                    @empty
+                        <p class="text-sm text-[#706f6c]">Nenhum produto cadastrado.</p>
+                    @endforelse
                 </div>
             </div>
 

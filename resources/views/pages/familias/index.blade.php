@@ -41,83 +41,84 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[#e3e3e0]">
-                    @foreach ([
-                        ['nome' => 'Maria Silva', 'cpf' => '123.456.789-00', 'membros' => 4, 'bairro' => 'Centro', 'tel' => '(11) 98765-4321', 'ativo' => true],
-                        ['nome' => 'João Santos', 'cpf' => '987.654.321-00', 'membros' => 3, 'bairro' => 'Jardim Primavera', 'tel' => '(11) 91234-5678', 'ativo' => true],
-                        ['nome' => 'Ana Oliveira', 'cpf' => '456.789.123-00', 'membros' => 5, 'bairro' => 'Vila Nova', 'tel' => '(11) 99876-5432', 'ativo' => true],
-                        ['nome' => 'Carlos Pereira', 'cpf' => '321.654.987-00', 'membros' => 2, 'bairro' => 'Parque das Águas', 'tel' => '(11) 97654-3210', 'ativo' => false],
-                        ['nome' => 'Fernanda Costa', 'cpf' => '654.321.789-00', 'membros' => 6, 'bairro' => 'Centro', 'tel' => '(11) 96543-2109', 'ativo' => true],
-                    ] as $familia)
+                    @forelse ($familias as $familia)
                         <tr class="hover:bg-[#FDFDFC]">
-                            <td class="py-3 font-medium">{{ $familia['nome'] }}</td>
-                            <td class="py-3 text-[#706f6c]">{{ $familia['cpf'] }}</td>
-                            <td class="py-3">{{ $familia['membros'] }}</td>
-                            <td class="py-3 text-[#706f6c]">{{ $familia['bairro'] }}</td>
-                            <td class="py-3 text-[#706f6c]">{{ $familia['tel'] }}</td>
+                            <td class="py-3 font-medium">{{ $familia->nome_responsavel }}</td>
+                            <td class="py-3 text-[#706f6c]">{{ $familia->cpf }}</td>
+                            <td class="py-3">{{ $familia->num_membros }}</td>
+                            <td class="py-3 text-[#706f6c]">{{ $familia->bairro }}</td>
+                            <td class="py-3 text-[#706f6c]">{{ $familia->telefone }}</td>
                             <td class="py-3">
                                 <span @class([
                                     'text-xs font-medium px-2 py-0.5 rounded-sm',
-                                    'bg-emerald-50 text-emerald-700' => $familia['ativo'],
-                                    'bg-[#dbdbd7] text-[#706f6c]' => ! $familia['ativo'],
-                                ])>{{ $familia['ativo'] ? 'Ativo' : 'Inativo' }}</span>
+                                    'bg-emerald-50 text-emerald-700' => $familia->ativo,
+                                    'bg-[#dbdbd7] text-[#706f6c]' => ! $familia->ativo,
+                                ])>{{ $familia->ativo ? 'Ativo' : 'Inativo' }}</span>
                             </td>
                             <td class="py-3 text-right">
-                                <button class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Editar</button>
+                                <form action="{{ route('familias.destroy', $familia) }}" method="POST" class="inline"
+                                      onsubmit="return confirm('Remover esta família?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Remover</button>
+                                </form>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="7" class="py-6 text-center text-[#706f6c]">Nenhuma família cadastrada.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
 
-        <div class="flex justify-end gap-1 mt-5 pt-4 border-t border-[#e3e3e0]">
-            <span class="px-3 py-1 text-xs border border-[#e3e3e0] rounded-sm text-[#706f6c]">Anterior</span>
-            <span class="px-3 py-1 text-xs bg-[#1b1b18] text-white rounded-sm">1</span>
-            <a href="#" class="px-3 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">2</a>
-            <a href="#" class="px-3 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Próximo</a>
+        <div class="mt-5 pt-4 border-t border-[#e3e3e0]">
+            {{ $familias->links() }}
         </div>
     </div>
 @endsection
 
 @push('modals')
-    <dialog id="modalFamilia" data-form-dialog
+    <dialog id="modalFamilia" data-form-dialog @if ($errors->any() && old('nome_responsavel')) data-reopen="true" @endif
             class="backdrop:bg-black/40 bg-transparent p-0 max-w-lg w-full rounded-lg">
         <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-6">
             <div class="flex items-center justify-between mb-5">
                 <h2 class="text-base font-semibold">Cadastrar família</h2>
                 <button type="button" data-dialog-close class="text-[#706f6c] hover:text-[#1b1b18] text-xl leading-none">&times;</button>
             </div>
-            <form class="space-y-4">
+            <form action="{{ route('familias.store') }}" method="POST" class="space-y-4">
+                @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div class="sm:col-span-2">
                         <label for="nomeResponsavel" class="block text-sm font-medium mb-1">Nome do responsável</label>
-                        <input type="text" id="nomeResponsavel" required
+                        <input type="text" id="nomeResponsavel" name="nome_responsavel" value="{{ old('nome_responsavel') }}" required
                                class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                     </div>
                     <div>
                         <label for="cpfResponsavel" class="block text-sm font-medium mb-1">CPF</label>
-                        <input type="text" id="cpfResponsavel" placeholder="000.000.000-00" required
+                        <input type="text" id="cpfResponsavel" name="cpf" value="{{ old('cpf') }}" placeholder="000.000.000-00" required
                                class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                     </div>
                     <div>
                         <label for="membrosFamilia" class="block text-sm font-medium mb-1">Nº de membros</label>
-                        <input type="number" id="membrosFamilia" min="1" value="1" required
+                        <input type="number" id="membrosFamilia" name="num_membros" min="1" value="{{ old('num_membros', 1) }}" required
                                class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                     </div>
                     <div>
                         <label for="telefoneFamilia" class="block text-sm font-medium mb-1">Telefone</label>
-                        <input type="tel" id="telefoneFamilia" placeholder="(00) 00000-0000"
+                        <input type="tel" id="telefoneFamilia" name="telefone" value="{{ old('telefone') }}" placeholder="(00) 00000-0000"
                                class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                     </div>
                     <div>
                         <label for="bairroFamilia" class="block text-sm font-medium mb-1">Bairro</label>
-                        <input type="text" id="bairroFamilia" required
+                        <input type="text" id="bairroFamilia" name="bairro" value="{{ old('bairro') }}"
                                class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                     </div>
                     <div class="sm:col-span-3">
                         <label for="enderecoFamilia" class="block text-sm font-medium mb-1">Endereço completo</label>
-                        <textarea id="enderecoFamilia" rows="2" required
-                                  class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]"></textarea>
+                        <textarea id="enderecoFamilia" name="endereco" rows="2"
+                                  class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">{{ old('endereco') }}</textarea>
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">

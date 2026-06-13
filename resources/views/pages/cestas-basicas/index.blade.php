@@ -9,7 +9,7 @@
             <p class="text-[#706f6c] text-sm">Listagem de cestas disponíveis para distribuição</p>
         </div>
         <div>
-            <button type="button" class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm font-medium hover:bg-black transition-colors">Nova cesta</button>
+            <a href="{{ route('cestas-basicas.create') }}" class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm font-medium hover:bg-black transition-colors">Nova cesta</a>
         </div>
     </div>
 
@@ -45,28 +45,28 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[#e3e3e0]">
-                    @foreach ([
-                        ['nome' => 'Cesta Família Básica', 'itens' => 8, 'valor' => 'R$ 120,00', 'status' => 'Ativa'],
-                        ['nome' => 'Cesta Proteção', 'itens' => 6, 'valor' => 'R$ 95,50', 'status' => 'Ativa'],
-                        ['nome' => 'Cesta Emergencial', 'itens' => 5, 'valor' => 'R$ 60,00', 'status' => 'Inativa'],
-                    ] as $cesta)
+                    @forelse ($cestas as $cesta)
                         <tr class="hover:bg-[#FDFDFC]">
-                            <td class="py-3 font-medium">{{ $cesta['nome'] }}</td>
-                            <td class="py-3 text-[#706f6c]">{{ $cesta['itens'] }}</td>
-                            <td class="py-3">{{ $cesta['valor'] }}</td>
+                            <td class="py-3 font-medium">{{ $cesta->nome }}</td>
+                            <td class="py-3 text-[#706f6c]">{{ $cesta->total_itens }}</td>
+                            <td class="py-3">R$ {{ number_format($cesta->valor_total, 2, ',', '.') }}</td>
                             <td class="py-3">
                                 <span @class([
                                     'text-xs font-medium px-2 py-0.5 rounded-sm',
-                                    'bg-emerald-50 text-emerald-700' => $cesta['status'] === 'Ativa',
-                                    'bg-[#dbdbd7] text-[#706f6c]' => $cesta['status'] !== 'Ativa',
-                                ])>{{ $cesta['status'] }}</span>
+                                    'bg-emerald-50 text-emerald-700' => $cesta->ativo,
+                                    'bg-[#dbdbd7] text-[#706f6c]' => ! $cesta->ativo,
+                                ])>{{ $cesta->ativo ? 'Ativa' : 'Inativa' }}</span>
                             </td>
                             <td class="py-3 text-right">
-                                <button type="button" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Visualizar</button>
-                                <button type="button" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Editar</button>
+                                <a href="{{ route('cestas-basicas.show', $cesta) }}" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Visualizar</a>
+                                <a href="{{ route('cestas-basicas.edit', $cesta) }}" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Editar</a>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="5" class="py-6 text-center text-[#706f6c]">Nenhuma cesta cadastrada.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

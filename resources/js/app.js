@@ -14,10 +14,9 @@ document.querySelectorAll('[data-dialog-close]').forEach((trigger) => {
     });
 });
 
+// Reabre modais após erro de validação (redirect back do Laravel).
 document.querySelectorAll('dialog[data-form-dialog]').forEach((dialog) => {
-    dialog.querySelector('form')?.addEventListener('submit', (event) => {
-        event.preventDefault();
-        alert('Funcionalidade disponível após integração com o backend.');
-        dialog.close();
-    });
+    if (dialog.dataset.reopen === 'true' && dialog instanceof HTMLDialogElement) {
+        dialog.showModal();
+    }
 });

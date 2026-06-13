@@ -35,4 +35,27 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Confrapix (gateway de pagamento PIX)
+    |--------------------------------------------------------------------------
+    |
+    | Credenciais e endpoints do gateway Confrapix. O token de acesso é lido de
+    | CONFRAPIX_TOKEN. Os caminhos de endpoint ficam isolados aqui para que
+    | possam ser ajustados conforme a documentação oficial sem alterar o código.
+    | Docs: https://doc.confrapix.com.br/
+    |
+    */
+    'confrapix' => [
+        'token' => env('CONFRAPIX_TOKEN'),
+        'base_url' => env('CONFRAPIX_BASE_URL', 'https://api.confrapix.com.br'),
+        'timeout' => (int) env('CONFRAPIX_TIMEOUT', 30),
+        'endpoints' => [
+            'create_pix' => env('CONFRAPIX_ENDPOINT_CREATE_PIX', '/api/transaction-ec/store'),
+            'get_charge' => env('CONFRAPIX_ENDPOINT_GET_CHARGE', '/api/transaction-ec/{id}'),
+            'show_charge' => env('CONFRAPIX_ENDPOINT_SHOW_CHARGE', '/api/transaction-ec/show/{id}'),
+            'list_charges' => env('CONFRAPIX_ENDPOINT_LIST_CHARGES', '/api/transaction-ec/index'),
+        ],
+    ],
+
 ];

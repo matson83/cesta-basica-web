@@ -16,9 +16,9 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         @foreach ([
-            ['label' => 'Este mês', 'value' => '47', 'color' => 'text-emerald-600'],
-            ['label' => 'Pendentes', 'value' => '5', 'color' => 'text-amber-600'],
-            ['label' => 'Entregues', 'value' => '42', 'color' => 'text-[#1b1b18]'],
+            ['label' => 'Este mês', 'value' => $stats['mes'], 'color' => 'text-emerald-600'],
+            ['label' => 'Pendentes', 'value' => $stats['pendentes'], 'color' => 'text-amber-600'],
+            ['label' => 'Entregues', 'value' => $stats['entregues'], 'color' => 'text-[#1b1b18]'],
         ] as $stat)
             <div class="bg-white rounded-lg p-4 text-center shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)]">
                 <p class="text-[#706f6c] text-sm mb-1">{{ $stat['label'] }}</p>
@@ -55,27 +55,47 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[#e3e3e0]">
-                    @foreach ([
-                        ['id' => 1042, 'data' => '10/06/2026', 'familia' => 'Maria Silva', 'itens' => '8 itens', 'resp' => 'Admin', 'status' => 'Entregue', 'badge' => 'bg-emerald-50 text-emerald-700'],
-                        ['id' => 1041, 'data' => '09/06/2026', 'familia' => 'João Santos', 'itens' => '8 itens', 'resp' => 'Admin', 'status' => 'Pendente', 'badge' => 'bg-amber-50 text-amber-700'],
-                        ['id' => 1040, 'data' => '08/06/2026', 'familia' => 'Ana Oliveira', 'itens' => '7 itens', 'resp' => 'Admin', 'status' => 'Entregue', 'badge' => 'bg-emerald-50 text-emerald-700'],
-                        ['id' => 1039, 'data' => '07/06/2026', 'familia' => 'Carlos Pereira', 'itens' => '8 itens', 'resp' => 'Admin', 'status' => 'Entregue', 'badge' => 'bg-emerald-50 text-emerald-700'],
-                        ['id' => 1038, 'data' => '06/06/2026', 'familia' => 'Fernanda Costa', 'itens' => '8 itens', 'resp' => 'Admin', 'status' => 'Cancelada', 'badge' => 'bg-red-50 text-[#f53003]'],
-                    ] as $row)
+                    @forelse ($distribuicoes as $distribuicao)
                         <tr class="hover:bg-[#FDFDFC]">
-                            <td class="py-3 text-[#706f6c]">{{ $row['id'] }}</td>
-                            <td class="py-3">{{ $row['data'] }}</td>
-                            <td class="py-3 font-medium">{{ $row['familia'] }}</td>
-                            <td class="py-3 text-[#706f6c]">{{ $row['itens'] }}</td>
-                            <td class="py-3 text-[#706f6c]">{{ $row['resp'] }}</td>
+                            <td class="py-3 text-[#706f6c]">{{ $distribuicao->id }}</td>
+                            <td class="py-3">{{ $distribuicao->data_entrega->format('d/m/Y') }}</td>
+                            <td class="py-3 font-medium">{{ $distribuicao->familia?->nome_responsavel }}</td>
+                            <td class="py-3 text-[#706f6c]">{{ $distribuicao->cesta?->total_itens ?? 0 }} itens</td>
+                            <td class="py-3 text-[#706f6c]">{{ $distribuicao->responsavel ?? '—' }}</td>
                             <td class="py-3">
-                                <span class="inline-flex px-2 py-0.5 rounded-sm text-xs font-medium {{ $row['badge'] }}">{{ $row['status'] }}</span>
+                                <span @class([
+                                    'inline-flex px-2 py-0.5 rounded-sm text-xs font-medium',
+                                    'bg-emerald-50 text-emerald-700' => in_array($distribuicao->status, [\App\Models\Distribuicao::STATUS_ENTREGUE, \App\Models\Distribuicao::STATUS_PAGA]),
+                                    'bg-amber-50 text-amber-700' => $distribuicao->status === \App\Models\Distribuicao::STATUS_PENDENTE,
+                                    'bg-red-50 text-[#f53003]' => $distribuicao->status === \App\Models\Distribuicao::STATUS_CANCELADA,
+                                ])>{{ ucfirst($distribuicao->status) }}</span>
                             </td>
                             <td class="py-3 text-right">
-                                <button class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Detalhes</button>
+                                <div class="inline-flex items-center gap-1">
+                                    @if ($distribuicao->pagamento && $distribuicao->pagamento->status === \App\Models\Pagamento::STATUS_PAGO)
+                                        <a href="{{ route('pagamentos.pix', $distribuicao->pagamento) }}" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Ver PIX</a>
+                                    @elseif ($distribuicao->cesta)
+                                        <form action="{{ route('pagamentos.pagar', $distribuicao) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="px-2 py-1 text-xs bg-[#1b1b18] text-white rounded-sm hover:bg-black transition-colors">
+                                                {{ $distribuicao->pagamento ? 'Continuar PIX' : 'Pagar' }}
+                                            </button>
+                                        </form>
+                                    @endif
+                                    <form action="{{ route('distribuicoes.destroy', $distribuicao) }}" method="POST" class="inline"
+                                          onsubmit="return confirm('Remover esta distribuição?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Remover</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="7" class="py-6 text-center text-[#706f6c]">Nenhuma distribuição registrada.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -83,54 +103,59 @@
 @endsection
 
 @push('modals')
-    <dialog id="modalDistribuicao" data-form-dialog
+    <dialog id="modalDistribuicao" data-form-dialog @if ($errors->any() && old('familia_id')) data-reopen="true" @endif
             class="backdrop:bg-black/40 bg-transparent p-0 max-w-lg w-full rounded-lg">
         <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-6">
             <div class="flex items-center justify-between mb-5">
                 <h2 class="text-base font-semibold">Registrar distribuição</h2>
                 <button type="button" data-dialog-close class="text-[#706f6c] hover:text-[#1b1b18] text-xl leading-none">&times;</button>
             </div>
-            <form class="space-y-4">
+            <form action="{{ route('distribuicoes.store') }}" method="POST" class="space-y-4">
+                @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label for="familiaDistribuicao" class="block text-sm font-medium mb-1">Família</label>
-                        <select id="familiaDistribuicao" required class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
+                        <select id="familiaDistribuicao" name="familia_id" required class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                             <option value="">Selecione a família...</option>
-                            <option>Maria Silva — Centro</option>
-                            <option>João Santos — Jardim Primavera</option>
-                            <option>Ana Oliveira — Vila Nova</option>
-                            <option>Fernanda Costa — Centro</option>
+                            @foreach ($familias as $familia)
+                                <option value="{{ $familia->id }}" @selected(old('familia_id') == $familia->id)>{{ $familia->nome_responsavel }} — {{ $familia->bairro }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div>
                         <label for="dataDistribuicao" class="block text-sm font-medium mb-1">Data da entrega</label>
-                        <input type="date" id="dataDistribuicao" required
+                        <input type="date" id="dataDistribuicao" name="data_entrega" value="{{ old('data_entrega') }}" required
                                class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                     </div>
                 </div>
-                <div>
-                    <p class="block text-sm font-medium mb-2">Itens da cesta</p>
-                    <div class="border border-[#e3e3e0] rounded-sm p-4 bg-[#FDFDFC] space-y-2 text-sm text-[#706f6c]">
-                        @foreach ([
-                            'Arroz branco 5kg (1x)',
-                            'Feijão carioca 1kg (2x)',
-                            'Óleo de soja 900ml (1x)',
-                            'Açúcar cristal 1kg (1x)',
-                            'Macarrão espaguete 500g (2x)',
-                            'Sabão em barra (4x)',
-                        ] as $item)
-                            <label class="flex items-center gap-2">
-                                <input type="checkbox" checked disabled class="rounded border-[#e3e3e0]">
-                                {{ $item }}
-                            </label>
-                        @endforeach
-                        <p class="text-xs pt-1">Composição padrão da cesta básica</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label for="cestaDistribuicao" class="block text-sm font-medium mb-1">Cesta</label>
+                        <select id="cestaDistribuicao" name="cesta_id" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
+                            <option value="">Selecione a cesta...</option>
+                            @foreach ($cestas as $cesta)
+                                <option value="{{ $cesta->id }}" @selected(old('cesta_id') == $cesta->id)>{{ $cesta->nome }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="statusDistribuicao" class="block text-sm font-medium mb-1">Status</label>
+                        <select id="statusDistribuicao" name="status" required class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
+                            @foreach (['pendente' => 'Pendente', 'entregue' => 'Entregue', 'cancelada' => 'Cancelada'] as $value => $label)
+                                <option value="{{ $value }}" @selected(old('status') === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
                 <div>
+                    <label for="responsavelDistribuicao" class="block text-sm font-medium mb-1">Responsável</label>
+                    <input type="text" id="responsavelDistribuicao" name="responsavel" value="{{ old('responsavel') }}" placeholder="Nome de quem registrou a entrega"
+                           class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
+                </div>
+                <div>
                     <label for="obsDistribuicao" class="block text-sm font-medium mb-1">Observações</label>
-                    <textarea id="obsDistribuicao" rows="2" placeholder="Informações adicionais sobre a entrega..."
-                              class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]"></textarea>
+                    <textarea id="obsDistribuicao" name="observacoes" rows="2" placeholder="Informações adicionais sobre a entrega..."
+                              class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">{{ old('observacoes') }}</textarea>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" data-dialog-close class="px-4 py-1.5 text-sm border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Cancelar</button>
