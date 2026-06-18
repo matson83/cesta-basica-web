@@ -20,3 +20,29 @@ document.querySelectorAll('dialog[data-form-dialog]').forEach((dialog) => {
         dialog.showModal();
     }
 });
+
+document.querySelectorAll('[data-table-search]').forEach((input) => {
+    const table = document.querySelector(input.dataset.tableSearch);
+    const rows = table?.querySelectorAll('tbody tr[data-search-row]');
+
+    if (!rows?.length) {
+        return;
+    }
+
+    const normalize = (value) => value
+        .toString()
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+        .toLowerCase();
+
+    const applySearch = () => {
+        const query = normalize(input.value);
+
+        rows.forEach((row) => {
+            row.hidden = query !== '' && !normalize(row.dataset.searchRow || row.textContent || '').includes(query);
+        });
+    };
+
+    input.addEventListener('input', applySearch);
+    applySearch();
+});

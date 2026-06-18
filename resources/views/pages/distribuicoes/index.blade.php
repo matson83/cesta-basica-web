@@ -9,7 +9,7 @@
             <p class="text-[#706f6c] text-sm">Histórico e registro de entregas de cestas</p>
         </div>
         <button type="button" data-dialog-open="modalDistribuicao"
-                class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm font-medium hover:bg-black transition-colors">
+                class="inline-flex items-center justify-center gap-1.5 px-4 py-2 sm:py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm font-medium hover:bg-black transition-colors">
             Nova distribuição
         </button>
     </div>
@@ -27,22 +27,27 @@
         @endforeach
     </div>
 
-    <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-5">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
-            <input type="date" value="2026-06-01"
+    <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-4 sm:p-5">
+        <form method="GET" action="{{ route('distribuicoes.index') }}" class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-5">
+            <input type="date" name="data" value="{{ request('data') }}"
                    class="text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
-            <select class="text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
-                <option selected>Todos os status</option>
-                <option>Pendente</option>
-                <option>Entregue</option>
-                <option>Cancelada</option>
+            <select name="status" class="text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
+                <option value="">Todos os status</option>
+                @foreach (['pendente' => 'Pendente', 'entregue' => 'Entregue', 'cancelada' => 'Cancelada'] as $value => $label)
+                    <option value="{{ $value }}" @selected(request('status') === $value)>{{ $label }}</option>
+                @endforeach
             </select>
-            <input type="search" placeholder="Buscar família..."
-                   class="text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
-        </div>
+            <input type="search" name="busca" value="{{ request('busca') }}" placeholder="Buscar família..."
+                   data-table-search="#tabelaDistribuicoes"
+                   class="md:col-span-2 text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
+            <div class="flex flex-col sm:flex-row gap-2">
+                <button type="submit" class="inline-flex justify-center px-4 py-2 text-sm bg-[#1b1b18] text-white rounded-sm hover:bg-black transition-colors">Filtrar</button>
+                <a href="{{ route('distribuicoes.index') }}" class="inline-flex justify-center px-4 py-2 text-sm border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Limpar</a>
+            </div>
+        </form>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+        <div class="app-table-wrap">
+            <table id="tabelaDistribuicoes" class="app-table text-sm" style="--table-min-width: 68rem">
                 <thead>
                     <tr class="border-b border-[#e3e3e0] text-left text-[#706f6c]">
                         <th class="pb-3 font-medium">#</th>
@@ -56,12 +61,13 @@
                 </thead>
                 <tbody class="divide-y divide-[#e3e3e0]">
                     @forelse ($distribuicoes as $distribuicao)
-                        <tr class="hover:bg-[#FDFDFC]">
+                        <tr class="hover:bg-[#FDFDFC]"
+                            data-search-row="{{ $distribuicao->familia?->nome_responsavel }} {{ $distribuicao->familia?->bairro }} {{ $distribuicao->responsavel }}">
                             <td class="py-3 text-[#706f6c]">{{ $distribuicao->id }}</td>
                             <td class="py-3">{{ $distribuicao->data_entrega->format('d/m/Y') }}</td>
-                            <td class="py-3 font-medium">{{ $distribuicao->familia?->nome_responsavel }}</td>
+                            <td class="py-3 font-medium">{{ $distribuicao->familia?->nome_responsavel ?? 'Família removida' }}</td>
                             <td class="py-3 text-[#706f6c]">{{ $distribuicao->cesta?->total_itens ?? 0 }} itens</td>
-                            <td class="py-3 text-[#706f6c]">{{ $distribuicao->responsavel ?? '—' }}</td>
+                            <td class="py-3 text-[#706f6c]">{{ $distribuicao->responsavel ?? 'Não informado' }}</td>
                             <td class="py-3">
                                 <span @class([
                                     'inline-flex px-2 py-0.5 rounded-sm text-xs font-medium',
@@ -71,18 +77,22 @@
                                 ])>{{ ucfirst($distribuicao->status) }}</span>
                             </td>
                             <td class="py-3 text-right">
-                                <div class="inline-flex items-center gap-1">
+                                <div class="app-table-actions">
                                     @if ($distribuicao->pagamento && $distribuicao->pagamento->status === \App\Models\Pagamento::STATUS_PAGO)
                                         <a href="{{ route('pagamentos.pix', $distribuicao->pagamento) }}" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Ver PIX</a>
                                     @elseif ($distribuicao->cesta)
-                                        <form action="{{ route('pagamentos.pagar', $distribuicao) }}" method="POST" class="inline">
+                                        <form action="{{ route('pagamentos.pagar', $distribuicao) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="px-2 py-1 text-xs bg-[#1b1b18] text-white rounded-sm hover:bg-black transition-colors">
                                                 {{ $distribuicao->pagamento ? 'Continuar PIX' : 'Pagar' }}
                                             </button>
                                         </form>
                                     @endif
-                                    <form action="{{ route('distribuicoes.destroy', $distribuicao) }}" method="POST" class="inline"
+                                    <button type="button" data-dialog-open="modalEditarDistribuicao{{ $distribuicao->id }}"
+                                            class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">
+                                        Editar
+                                    </button>
+                                    <form action="{{ route('distribuicoes.destroy', $distribuicao) }}" method="POST"
                                           onsubmit="return confirm('Remover esta distribuição?');">
                                         @csrf
                                         @method('DELETE')
@@ -103,28 +113,29 @@
 @endsection
 
 @push('modals')
-    <dialog id="modalDistribuicao" data-form-dialog @if ($errors->any() && old('familia_id')) data-reopen="true" @endif
-            class="backdrop:bg-black/40 bg-transparent p-0 max-w-lg w-full rounded-lg">
-        <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-6">
+    <dialog id="modalDistribuicao" data-form-dialog @if ($errors->any() && old('form_context') === 'distribuicao-store') data-reopen="true" @endif
+            class="app-dialog backdrop:bg-black/40 bg-transparent p-0 rounded-lg" style="--dialog-width: 32rem">
+        <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-4 sm:p-6">
             <div class="flex items-center justify-between mb-5">
                 <h2 class="text-base font-semibold">Registrar distribuição</h2>
                 <button type="button" data-dialog-close class="text-[#706f6c] hover:text-[#1b1b18] text-xl leading-none">&times;</button>
             </div>
             <form action="{{ route('distribuicoes.store') }}" method="POST" class="space-y-4">
                 @csrf
+                <input type="hidden" name="form_context" value="distribuicao-store">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label for="familiaDistribuicao" class="block text-sm font-medium mb-1">Família</label>
                         <select id="familiaDistribuicao" name="familia_id" required class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                             <option value="">Selecione a família...</option>
                             @foreach ($familias as $familia)
-                                <option value="{{ $familia->id }}" @selected(old('familia_id') == $familia->id)>{{ $familia->nome_responsavel }} — {{ $familia->bairro }}</option>
+                                <option value="{{ $familia->id }}" @selected(old('form_context') === 'distribuicao-store' && old('familia_id') == $familia->id)>{{ $familia->nome_responsavel }} - {{ $familia->bairro }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
                         <label for="dataDistribuicao" class="block text-sm font-medium mb-1">Data da entrega</label>
-                        <input type="date" id="dataDistribuicao" name="data_entrega" value="{{ old('data_entrega') }}" required
+                        <input type="date" id="dataDistribuicao" name="data_entrega" value="{{ old('form_context') === 'distribuicao-store' ? old('data_entrega', now()->toDateString()) : now()->toDateString() }}" required
                                class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                     </div>
                 </div>
@@ -134,7 +145,7 @@
                         <select id="cestaDistribuicao" name="cesta_id" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                             <option value="">Selecione a cesta...</option>
                             @foreach ($cestas as $cesta)
-                                <option value="{{ $cesta->id }}" @selected(old('cesta_id') == $cesta->id)>{{ $cesta->nome }}</option>
+                                <option value="{{ $cesta->id }}" @selected(old('form_context') === 'distribuicao-store' && old('cesta_id') == $cesta->id)>{{ $cesta->nome }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -142,26 +153,104 @@
                         <label for="statusDistribuicao" class="block text-sm font-medium mb-1">Status</label>
                         <select id="statusDistribuicao" name="status" required class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                             @foreach (['pendente' => 'Pendente', 'entregue' => 'Entregue', 'cancelada' => 'Cancelada'] as $value => $label)
-                                <option value="{{ $value }}" @selected(old('status') === $value)>{{ $label }}</option>
+                                <option value="{{ $value }}" @selected(old('form_context') === 'distribuicao-store' && old('status', 'pendente') === $value)>{{ $label }}</option>
                             @endforeach
                         </select>
                     </div>
                 </div>
                 <div>
                     <label for="responsavelDistribuicao" class="block text-sm font-medium mb-1">Responsável</label>
-                    <input type="text" id="responsavelDistribuicao" name="responsavel" value="{{ old('responsavel') }}" placeholder="Nome de quem registrou a entrega"
+                    <input type="text" id="responsavelDistribuicao" name="responsavel" value="{{ old('form_context') === 'distribuicao-store' ? old('responsavel') : '' }}" placeholder="Nome de quem registrou a entrega"
                            class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                 </div>
                 <div>
                     <label for="obsDistribuicao" class="block text-sm font-medium mb-1">Observações</label>
                     <textarea id="obsDistribuicao" name="observacoes" rows="2" placeholder="Informações adicionais sobre a entrega..."
-                              class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">{{ old('observacoes') }}</textarea>
+                              class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">{{ old('form_context') === 'distribuicao-store' ? old('observacoes') : '' }}</textarea>
                 </div>
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" data-dialog-close class="px-4 py-1.5 text-sm border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Cancelar</button>
-                    <button type="submit" class="px-4 py-1.5 text-sm bg-[#1b1b18] text-white rounded-sm hover:bg-black transition-colors">Registrar</button>
+                <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
+                    <button type="button" data-dialog-close class="px-4 py-2 sm:py-1.5 text-sm border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 sm:py-1.5 text-sm bg-[#1b1b18] text-white rounded-sm hover:bg-black transition-colors">Registrar</button>
                 </div>
             </form>
         </div>
     </dialog>
+
+    @foreach ($distribuicoes as $distribuicao)
+        @php
+            $distribuicaoEditContext = 'distribuicao-update-'.$distribuicao->id;
+            $editFamiliaId = old('form_context') === $distribuicaoEditContext ? old('familia_id') : $distribuicao->familia_id;
+            $editCestaId = old('form_context') === $distribuicaoEditContext ? old('cesta_id') : $distribuicao->cesta_id;
+            $editStatus = old('form_context') === $distribuicaoEditContext ? old('status') : $distribuicao->status;
+        @endphp
+        <dialog id="modalEditarDistribuicao{{ $distribuicao->id }}" data-form-dialog @if ($errors->any() && old('form_context') === $distribuicaoEditContext) data-reopen="true" @endif
+                class="app-dialog backdrop:bg-black/40 bg-transparent p-0 rounded-lg" style="--dialog-width: 32rem">
+            <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-4 sm:p-6">
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-base font-semibold">Editar distribuição</h2>
+                    <button type="button" data-dialog-close class="text-[#706f6c] hover:text-[#1b1b18] text-xl leading-none">&times;</button>
+                </div>
+                <form action="{{ route('distribuicoes.update', $distribuicao) }}" method="POST" class="space-y-4">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="form_context" value="{{ $distribuicaoEditContext }}">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label for="familiaDistribuicao{{ $distribuicao->id }}" class="block text-sm font-medium mb-1">Família</label>
+                            <select id="familiaDistribuicao{{ $distribuicao->id }}" name="familia_id" required class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
+                                <option value="">Selecione a família...</option>
+                                @if ($distribuicao->familia && ! $familias->contains('id', $distribuicao->familia_id))
+                                    <option value="{{ $distribuicao->familia_id }}" @selected($editFamiliaId == $distribuicao->familia_id)>{{ $distribuicao->familia->nome_responsavel }} - {{ $distribuicao->familia->bairro }}</option>
+                                @endif
+                                @foreach ($familias as $familia)
+                                    <option value="{{ $familia->id }}" @selected($editFamiliaId == $familia->id)>{{ $familia->nome_responsavel }} - {{ $familia->bairro }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="dataDistribuicao{{ $distribuicao->id }}" class="block text-sm font-medium mb-1">Data da entrega</label>
+                            <input type="date" id="dataDistribuicao{{ $distribuicao->id }}" name="data_entrega" value="{{ old('form_context') === $distribuicaoEditContext ? old('data_entrega') : $distribuicao->data_entrega->format('Y-m-d') }}" required
+                                   class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label for="cestaDistribuicao{{ $distribuicao->id }}" class="block text-sm font-medium mb-1">Cesta</label>
+                            <select id="cestaDistribuicao{{ $distribuicao->id }}" name="cesta_id" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
+                                <option value="">Selecione a cesta...</option>
+                                @if ($distribuicao->cesta && ! $cestas->contains('id', $distribuicao->cesta_id))
+                                    <option value="{{ $distribuicao->cesta_id }}" @selected($editCestaId == $distribuicao->cesta_id)>{{ $distribuicao->cesta->nome }}</option>
+                                @endif
+                                @foreach ($cestas as $cesta)
+                                    <option value="{{ $cesta->id }}" @selected($editCestaId == $cesta->id)>{{ $cesta->nome }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="statusDistribuicao{{ $distribuicao->id }}" class="block text-sm font-medium mb-1">Status</label>
+                            <select id="statusDistribuicao{{ $distribuicao->id }}" name="status" required class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
+                                @foreach (['pendente' => 'Pendente', 'entregue' => 'Entregue', 'cancelada' => 'Cancelada'] as $value => $label)
+                                    <option value="{{ $value }}" @selected($editStatus === $value)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="responsavelDistribuicao{{ $distribuicao->id }}" class="block text-sm font-medium mb-1">Responsável</label>
+                        <input type="text" id="responsavelDistribuicao{{ $distribuicao->id }}" name="responsavel" value="{{ old('form_context') === $distribuicaoEditContext ? old('responsavel') : $distribuicao->responsavel }}" placeholder="Nome de quem registrou a entrega"
+                               class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
+                    </div>
+                    <div>
+                        <label for="obsDistribuicao{{ $distribuicao->id }}" class="block text-sm font-medium mb-1">Observações</label>
+                        <textarea id="obsDistribuicao{{ $distribuicao->id }}" name="observacoes" rows="2" placeholder="Informações adicionais sobre a entrega..."
+                                  class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">{{ old('form_context') === $distribuicaoEditContext ? old('observacoes') : $distribuicao->observacoes }}</textarea>
+                    </div>
+                    <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
+                        <button type="button" data-dialog-close class="px-4 py-2 sm:py-1.5 text-sm border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 sm:py-1.5 text-sm bg-[#1b1b18] text-white rounded-sm hover:bg-black transition-colors">Salvar alterações</button>
+                    </div>
+                </form>
+            </div>
+        </dialog>
+    @endforeach
 @endpush

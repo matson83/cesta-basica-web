@@ -8,27 +8,51 @@
         <p class="text-[#706f6c] text-sm">Monte a cesta, escolha a família e gere o pagamento via PIX</p>
     </div>
 
-    <form action="{{ route('cestas-basicas.store') }}" method="POST" class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-6">
+    <form action="{{ route('cestas-basicas.store') }}" method="POST" class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-4 sm:p-6">
         @csrf
         <div class="grid grid-cols-1 gap-4">
-            <div>
-                <label class="block text-sm font-medium mb-1">Nome da cesta</label>
-                <input id="nomeCesta" name="nome" value="{{ old('nome') }}" required class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2" placeholder="Ex: Cesta Família Básica">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="sm:col-span-2">
+                    <label for="nomeCesta" class="block text-sm font-medium mb-1">Nome da cesta</label>
+                    <input id="nomeCesta" name="nome" value="{{ old('nome') }}" required class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]" placeholder="Ex: Cesta Família Básica">
+                </div>
+                <div>
+                    <label for="categoriaCesta" class="block text-sm font-medium mb-1">Categoria</label>
+                    <select id="categoriaCesta" name="categoria" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
+                        <option value="">Selecione...</option>
+                        @foreach (['Padronizadas', 'Especiais'] as $cat)
+                            <option value="{{ $cat }}" @selected(old('categoria') === $cat)>{{ $cat }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
             <div>
-                <label class="block text-sm font-medium mb-1">Descrição</label>
-                <textarea id="descCesta" name="descricao" rows="2" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2">{{ old('descricao') }}</textarea>
+                <label for="descCesta" class="block text-sm font-medium mb-1">Descrição</label>
+                <textarea id="descCesta" name="descricao" rows="2" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">{{ old('descricao') }}</textarea>
             </div>
+            <label class="flex items-center gap-2 text-sm">
+                <input type="hidden" name="ativo" value="0">
+                <input type="checkbox" name="ativo" value="1" class="rounded-sm border-[#e3e3e0]" @checked(old('ativo', 1))>
+                Cesta ativa
+            </label>
 
             <div>
                 <p class="text-sm font-medium mb-2">Produtos</p>
                 <div class="space-y-2">
                     @forelse ($produtos as $p)
-                        <label class="flex items-center gap-3">
-                            <input type="checkbox" name="product[{{ $p->id }}][selected]" value="1" data-preco="{{ $p->preco }}" class="produto-check">
-                            <span class="flex-1">{{ $p->nome }}</span>
-                            <input name="product[{{ $p->id }}][qty]" type="number" min="0" value="0" class="w-20 text-sm border border-[#e3e3e0] rounded-sm px-2 py-1 produto-qtd">
-                            <span class="w-24 text-right">R$ {{ number_format($p->preco, 2, ',', '.') }}</span>
+                        @php
+                            $produtoSelecionado = old("product.{$p->id}.selected");
+                            $produtoQuantidade = old("product.{$p->id}.qty", 0);
+                        @endphp
+                        <label class="flex flex-col gap-2 rounded-sm border border-[#e3e3e0] p-3 sm:flex-row sm:items-center sm:border-0 sm:p-0">
+                            <span class="flex items-center gap-3 min-w-0 sm:flex-1">
+                                <input type="checkbox" name="product[{{ $p->id }}][selected]" value="1" data-preco="{{ $p->preco }}" class="produto-check" @checked($produtoSelecionado || (int) $produtoQuantidade > 0)>
+                                <span class="min-w-0 flex-1">{{ $p->nome }}</span>
+                            </span>
+                            <span class="grid grid-cols-[minmax(0,1fr)_6rem] items-center gap-3 sm:flex sm:justify-end">
+                                <input name="product[{{ $p->id }}][qty]" type="number" min="0" value="{{ $produtoQuantidade }}" class="w-full sm:w-20 text-sm border border-[#e3e3e0] rounded-sm px-2 py-1 produto-qtd">
+                                <span class="text-right whitespace-nowrap">R$ {{ number_format($p->preco, 2, ',', '.') }}</span>
+                            </span>
                         </label>
                     @empty
                         <p class="text-sm text-[#706f6c]">Nenhum produto cadastrado. Cadastre produtos antes de montar uma cesta.</p>
@@ -37,9 +61,9 @@
             </div>
 
             <div class="border-t border-[#e3e3e0] pt-4">
-                <p class="text-sm font-medium mb-3">Família beneficiária</p>
+                <p class="text-sm font-medium mb-2">Família beneficiária</p>
 
-                <div class="flex flex-wrap gap-4 mb-3 text-sm">
+                <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 mb-3 text-sm">
                     <label class="flex items-center gap-2">
                         <input type="radio" name="familia_modo" value="existente" class="familia-modo" {{ old('familia_modo', 'existente') === 'existente' ? 'checked' : '' }}>
                         Família existente
@@ -57,10 +81,10 @@
                 <div data-familia="existente" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-sm font-medium mb-1">Selecione a família</label>
-                        <select name="familia_id" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2">
+                        <select name="familia_id" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                             <option value="">Selecione...</option>
                             @foreach ($familias as $familia)
-                                <option value="{{ $familia->id }}" @selected(old('familia_id') == $familia->id)>{{ $familia->nome_responsavel }} — {{ $familia->bairro }}</option>
+                                <option value="{{ $familia->id }}" @selected(old('familia_id') == $familia->id)>{{ $familia->nome_responsavel }} - {{ $familia->bairro }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -69,42 +93,42 @@
                 <div data-familia="nova" class="hidden grid-cols-1 sm:grid-cols-3 gap-3">
                     <div class="sm:col-span-2">
                         <label class="block text-sm font-medium mb-1">Nome do responsável</label>
-                        <input name="familia[nome_responsavel]" value="{{ old('familia.nome_responsavel') }}" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2">
+                        <input name="familia[nome_responsavel]" value="{{ old('familia.nome_responsavel') }}" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">CPF</label>
-                        <input name="familia[cpf]" value="{{ old('familia.cpf') }}" placeholder="000.000.000-00" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2">
+                        <input name="familia[cpf]" value="{{ old('familia.cpf') }}" placeholder="000.000.000-00" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Nº de membros</label>
-                        <input name="familia[num_membros]" type="number" min="1" value="{{ old('familia.num_membros', 1) }}" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2">
+                        <input name="familia[num_membros]" type="number" min="1" value="{{ old('familia.num_membros', 1) }}" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Telefone</label>
-                        <input name="familia[telefone]" value="{{ old('familia.telefone') }}" placeholder="(00) 00000-0000" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2">
+                        <input name="familia[telefone]" value="{{ old('familia.telefone') }}" placeholder="(00) 00000-0000" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Bairro</label>
-                        <input name="familia[bairro]" value="{{ old('familia.bairro') }}" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2">
+                        <input name="familia[bairro]" value="{{ old('familia.bairro') }}" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                     </div>
                     <div class="sm:col-span-3">
                         <label class="block text-sm font-medium mb-1">Endereço completo</label>
-                        <textarea name="familia[endereco]" rows="2" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2">{{ old('familia.endereco') }}</textarea>
+                        <textarea name="familia[endereco]" rows="2" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">{{ old('familia.endereco') }}</textarea>
                     </div>
                 </div>
 
                 <div data-familia-data class="mt-3 max-w-xs">
                     <label class="block text-sm font-medium mb-1">Data da entrega</label>
-                    <input type="date" name="data_entrega" value="{{ old('data_entrega', now()->toDateString()) }}" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2">
+                    <input type="date" name="data_entrega" value="{{ old('data_entrega', now()->toDateString()) }}" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                 </div>
             </div>
 
-            <div class="flex justify-end items-center gap-4 border-t border-[#e3e3e0] pt-4">
-                <div class="text-right">
+            <div class="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-4 border-t border-[#e3e3e0] pt-4">
+                <div class="sm:text-right">
                     <p class="text-sm text-[#706f6c]">Valor total</p>
                     <p id="totalCesta" class="text-xl font-semibold">R$ 0,00</p>
                 </div>
-                <button type="submit" id="btnSalvar" class="px-4 py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm hover:bg-black transition-colors">Criar e gerar PIX</button>
+                <button type="submit" id="btnSalvar" class="px-4 py-2 sm:py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm hover:bg-black transition-colors">Criar e gerar PIX</button>
             </div>
         </div>
     </form>
@@ -114,15 +138,20 @@
             (function(){
                 function calc(){
                     let total = 0;
-                    document.querySelectorAll('.produto-check').forEach((cb, i)=>{
-                        const qtd = Number(document.querySelectorAll('.produto-qtd')[i].value || 0);
-                        if(cb.checked && qtd>0){
+                    const checks = document.querySelectorAll('.produto-check');
+                    const quantidades = document.querySelectorAll('.produto-qtd');
+
+                    checks.forEach((cb, i)=>{
+                        const qtd = Number(quantidades[i].value || 0);
+                        if((cb.checked || qtd > 0) && qtd > 0){
                             total += qtd * Number(cb.dataset.preco);
                         }
                     });
+
                     document.getElementById('totalCesta').textContent = 'R$ ' + total.toFixed(2).replace('.',',');
                 }
                 document.querySelectorAll('.produto-check, .produto-qtd').forEach(el=>el.addEventListener('input', calc));
+                calc();
             })();
 
             (function(){

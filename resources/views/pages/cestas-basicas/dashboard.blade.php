@@ -23,10 +23,10 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-5">
+    <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-4 sm:p-5">
         <h2 class="text-sm font-semibold mb-3">Últimas cestas criadas</h2>
-        <div class="overflow-x-auto">
-                <table class="w-full text-sm">
+        <div class="app-table-wrap">
+                <table class="app-table text-sm" style="--table-min-width: 38rem">
                     <caption class="sr-only">Últimas cestas criadas</caption>
                 <thead>
                     <tr class="border-b border-[#e3e3e0] text-left text-[#706f6c]">

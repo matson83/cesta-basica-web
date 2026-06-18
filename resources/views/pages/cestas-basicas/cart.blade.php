@@ -16,10 +16,10 @@
         $subtotal = array_sum(array_map(fn($i) => $i['qtd'] * $i['valor'], $cart));
     @endphp
 
-    <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-5">
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                    <caption class="sr-only">Itens no carrinho</caption>
+    <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-4 sm:p-5">
+        <div class="app-table-wrap">
+            <table class="app-table text-sm" style="--table-min-width: 40rem">
+                <caption class="sr-only">Itens no carrinho</caption>
                 <thead>
                         <tr class="border-b border-[#e3e3e0] text-left text-[#706f6c]">
                             <th scope="col" class="pb-3 font-medium">Cesta</th>
@@ -41,12 +41,12 @@
             </table>
         </div>
 
-        <div class="flex justify-between items-center gap-4 mt-4 pt-4 border-t border-[#e3e3e0]">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-4 pt-4 border-t border-[#e3e3e0]">
             <div class="text-sm text-[#706f6c]">Total de itens: {{ array_sum(array_column($cart, 'qtd')) }}</div>
-            <div class="text-right">
+            <div class="sm:text-right">
                 <p class="text-sm text-[#706f6c]">Subtotal</p>
                 <p class="text-xl font-semibold">R$ {{ number_format($subtotal,2,',','.') }}</p>
-                    <button type="button" class="inline-block mt-3 px-4 py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm">Finalizar compra</button>
+                <button type="button" class="w-full sm:w-auto inline-block mt-3 px-4 py-2 sm:py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm">Finalizar compra</button>
             </div>
         </div>
     </div>

@@ -8,8 +8,8 @@
         <p class="text-[#706f6c] text-sm">Escaneie o QR Code ou copie o código para pagar</p>
     </div>
 
-    <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-6 flex flex-col items-center gap-4">
-        <div class="flex items-center gap-3 text-sm">
+    <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-4 sm:p-6 flex flex-col items-center gap-4">
+        <div class="flex flex-wrap items-center justify-center gap-3 text-sm">
             <span class="text-[#706f6c]">Valor:</span>
             <strong>R$ {{ number_format($pagamento->valor_reais, 2, ',', '.') }}</strong>
             <span id="pixStatus" @class([
@@ -27,7 +27,7 @@
             Pagamento confirmado! Obrigado.
         </p>
 
-        <div class="bg-white p-4 rounded-md border border-[#e3e3e0]">
+        <div class="bg-white p-3 sm:p-4 rounded-md border border-[#e3e3e0] max-w-full overflow-x-auto">
             @if ($pagamento->pix_qr_code_base64)
                 @php
                     $img = $pagamento->pix_qr_code_base64;
@@ -49,7 +49,7 @@
                 <textarea id="pixCode" readonly rows="3"
                           class="w-full font-mono text-xs border border-[#e3e3e0] rounded-sm px-3 py-2 resize-none">{{ $pagamento->pix_copia_cola }}</textarea>
                 <button type="button" id="copyPix" aria-label="Copiar código PIX"
-                        class="mt-3 px-4 py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm hover:bg-black transition-colors">Copiar código</button>
+                        class="mt-3 w-full sm:w-auto px-4 py-2 sm:py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm hover:bg-black transition-colors">Copiar código</button>
             </div>
         @else
             <p class="text-sm text-[#706f6c] text-center max-w-md">

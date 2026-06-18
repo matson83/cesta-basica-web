@@ -8,9 +8,9 @@
         <p class="text-[#706f6c] text-sm">Pedidos realizados (dados fictícios)</p>
     </div>
 
-    <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-5">
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+    <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-4 sm:p-5">
+        <div class="app-table-wrap">
+            <table class="app-table text-sm" style="--table-min-width: 48rem">
                 <thead>
                     <tr class="border-b border-[#e3e3e0] text-left text-[#706f6c]">
                         <th scope="col" class="pb-3 font-medium">Pedido</th>
@@ -41,7 +41,7 @@
                                 ])>{{ $o['status'] }}</span>
                             </td>
                             <td class="py-3 text-right">
-                                <button class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm">Visualizar</button>
+                                <button type="button" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm">Visualizar</button>
                             </td>
                         </tr>
                     @endforeach

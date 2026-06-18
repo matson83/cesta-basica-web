@@ -8,23 +8,38 @@
         <p class="text-[#706f6c] text-sm">Visualização completa da composição da cesta</p>
     </div>
 
-    <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-6">
-        <div class="flex items-start justify-between gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] p-4 sm:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-6 mb-6">
             <div>
-                <h2 class="text-lg font-semibold">{{ $cesta->nome }}</h2>
+                <div class="flex flex-wrap items-center gap-2">
+                    <h2 class="text-lg font-semibold">{{ $cesta->nome }}</h2>
+                    <span @class([
+                        'text-xs font-medium px-2 py-0.5 rounded-sm',
+                        'bg-emerald-50 text-emerald-700' => $cesta->ativo,
+                        'bg-[#dbdbd7] text-[#706f6c]' => ! $cesta->ativo,
+                    ])>{{ $cesta->ativo ? 'Ativa' : 'Inativa' }}</span>
+                </div>
                 <p class="text-sm text-[#706f6c] mt-1">{{ $cesta->descricao }}</p>
+                <p class="text-xs text-[#706f6c] mt-2">{{ $cesta->categoria ?? 'Sem categoria' }}</p>
             </div>
-            <div class="flex items-start gap-6">
-                <div class="text-right">
+            <div class="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-6">
+                <div class="sm:text-right">
                     <p class="text-sm text-[#706f6c]">Itens</p>
                     <p class="text-xl font-semibold">{{ $cesta->total_itens }}</p>
                 </div>
-                <a href="{{ route('cestas-basicas.edit', $cesta) }}" class="px-3 py-1.5 text-sm border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Editar</a>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <a href="{{ route('cestas-basicas.edit', $cesta) }}" class="inline-flex justify-center px-3 py-2 sm:py-1.5 text-sm border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Editar</a>
+                    <form action="{{ route('cestas-basicas.destroy', $cesta) }}" method="POST" onsubmit="return confirm('Remover esta cesta?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="w-full px-3 py-2 sm:py-1.5 text-sm border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Remover</button>
+                    </form>
+                </div>
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm mb-4">
+        <div class="app-table-wrap">
+            <table class="app-table text-sm mb-4" style="--table-min-width: 42rem">
                 <caption class="sr-only">Produtos incluídos na cesta</caption>
                 <thead>
                     <tr class="border-b border-[#e3e3e0] text-left text-[#706f6c]">

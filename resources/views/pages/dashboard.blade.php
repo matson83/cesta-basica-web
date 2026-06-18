@@ -8,7 +8,7 @@
             <h1 class="text-xl font-semibold mb-1">Dashboard</h1>
             <p class="text-[#706f6c] text-sm">Visão geral da distribuição de cestas básicas</p>
         </div>
-        <a href="{{ route('distribuicoes.index') }}" class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm font-medium hover:bg-black transition-colors">
+        <a href="{{ route('distribuicoes.index') }}" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 sm:py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm font-medium hover:bg-black transition-colors">
             Nova distribuição
         </a>
     </div>
@@ -32,8 +32,8 @@
             <div class="px-5 pt-5 pb-3">
                 <h2 class="text-sm font-semibold">Últimas distribuições</h2>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
+            <div class="app-table-wrap">
+                <table class="app-table text-sm" style="--table-min-width: 42rem">
                     <thead>
                         <tr class="border-t border-[#e3e3e0] text-left text-[#706f6c]">
                             <th class="px-5 py-2 font-medium">Data</th>
@@ -77,10 +77,10 @@
                         ['nome' => 'Café 500g', 'qtd' => '8 un.', 'danger' => true],
                         ['nome' => 'Leite em pó 400g', 'qtd' => '18 un.', 'danger' => false],
                     ] as $produto)
-                        <li class="flex items-center justify-between px-5 py-3 text-sm">
-                            <span>{{ $produto['nome'] }}</span>
+                        <li class="flex items-center justify-between gap-3 px-5 py-3 text-sm">
+                            <span class="min-w-0">{{ $produto['nome'] }}</span>
                             <span @class([
-                                'text-xs font-medium px-2 py-0.5 rounded-sm',
+                                'shrink-0 text-xs font-medium px-2 py-0.5 rounded-sm',
                                 'bg-red-50 text-[#f53003]' => $produto['danger'],
                                 'bg-amber-50 text-amber-700' => ! $produto['danger'],
                             ])>{{ $produto['qtd'] }}</span>

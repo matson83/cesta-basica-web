@@ -14,7 +14,7 @@
 <body class="bg-[#FDFDFC] text-[#1b1b18] antialiased min-h-screen flex flex-col">
     @include('partials.navbar')
 
-    <main class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         @if (session('status'))
             <div class="mb-6 rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
                 {{ session('status') }}

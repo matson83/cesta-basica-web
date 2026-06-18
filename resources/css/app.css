@@ -8,3 +8,65 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+@layer components {
+    .app-table-wrap {
+        margin-inline: -1.25rem;
+        overflow-x: auto;
+        padding-inline: 1.25rem;
+    }
+
+    .app-table {
+        min-width: var(--table-min-width, 44rem);
+        width: 100%;
+    }
+
+    .app-table th,
+    .app-table td {
+        padding-inline: 0.75rem;
+        vertical-align: top;
+    }
+
+    .app-table th:first-child,
+    .app-table td:first-child {
+        padding-left: 0;
+    }
+
+    .app-table th:last-child,
+    .app-table td:last-child {
+        padding-right: 0;
+    }
+
+    .app-table-actions {
+        align-items: center;
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+        justify-content: flex-end;
+    }
+
+    .app-dialog {
+        max-height: calc(100dvh - 2rem);
+        overflow-y: auto;
+        width: min(calc(100vw - 2rem), var(--dialog-width, 32rem));
+    }
+
+    @media (max-width: 639px) {
+        .app-table-actions {
+            align-items: stretch;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-table-actions > * {
+            display: flex;
+            width: 100%;
+        }
+
+        .app-table-actions a,
+        .app-table-actions button {
+            justify-content: center;
+            width: 100%;
+        }
+    }
+}
