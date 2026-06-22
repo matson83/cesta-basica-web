@@ -18,7 +18,7 @@
         @foreach ([
             ['label' => 'Este mês', 'value' => $stats['mes'], 'color' => 'text-emerald-600'],
             ['label' => 'Pendentes', 'value' => $stats['pendentes'], 'color' => 'text-amber-600'],
-            ['label' => 'Entregues', 'value' => $stats['entregues'], 'color' => 'text-[#1b1b18]'],
+            ['label' => 'Pagas', 'value' => $stats['pagas'], 'color' => 'text-[#1b1b18]'],
         ] as $stat)
             <div class="bg-white rounded-lg p-4 text-center shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)]">
                 <p class="text-[#706f6c] text-sm mb-1">{{ $stat['label'] }}</p>
@@ -33,7 +33,7 @@
                    class="text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
             <select name="status" class="text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
                 <option value="">Todos os status</option>
-                @foreach (['pendente' => 'Pendente', 'entregue' => 'Entregue', 'cancelada' => 'Cancelada'] as $value => $label)
+                @foreach (\App\Models\Distribuicao::statusOpcoes() as $value => $label)
                     <option value="{{ $value }}" @selected(request('status') === $value)>{{ $label }}</option>
                 @endforeach
             </select>
@@ -47,7 +47,16 @@
         </form>
 
         <div class="app-table-wrap">
-            <table id="tabelaDistribuicoes" class="app-table text-sm" style="--table-min-width: 68rem">
+            <table id="tabelaDistribuicoes" class="app-table app-table--fluid text-sm">
+                <colgroup>
+                    <col style="width: 3rem">
+                    <col style="width: 6.5rem">
+                    <col style="width: 24%">
+                    <col style="width: 5.5rem">
+                    <col style="width: 16%">
+                    <col style="width: 6.5rem">
+                    <col style="width: 26%">
+                </colgroup>
                 <thead>
                     <tr class="border-b border-[#e3e3e0] text-left text-[#706f6c]">
                         <th class="pb-3 font-medium">#</th>
@@ -64,22 +73,22 @@
                         <tr class="hover:bg-[#FDFDFC]"
                             data-search-row="{{ $distribuicao->familia?->nome_responsavel }} {{ $distribuicao->familia?->bairro }} {{ $distribuicao->responsavel }}">
                             <td class="py-3 text-[#706f6c]">{{ $distribuicao->id }}</td>
-                            <td class="py-3">{{ $distribuicao->data_entrega->format('d/m/Y') }}</td>
-                            <td class="py-3 font-medium">{{ $distribuicao->familia?->nome_responsavel ?? 'Família removida' }}</td>
-                            <td class="py-3 text-[#706f6c]">{{ $distribuicao->cesta?->total_itens ?? 0 }} itens</td>
-                            <td class="py-3 text-[#706f6c]">{{ $distribuicao->responsavel ?? 'Não informado' }}</td>
-                            <td class="py-3">
+                            <td class="py-3 whitespace-nowrap">{{ $distribuicao->data_entrega->format('d/m/Y') }}</td>
+                            <td class="py-3 font-medium app-table__truncate" title="{{ $distribuicao->familia?->nome_responsavel ?? 'Família removida' }}">{{ $distribuicao->familia?->nome_responsavel ?? 'Família removida' }}</td>
+                            <td class="py-3 text-[#706f6c] whitespace-nowrap">{{ $distribuicao->cesta?->total_itens ?? 0 }} itens</td>
+                            <td class="py-3 text-[#706f6c] app-table__truncate" title="{{ $distribuicao->responsavel ?? 'Não informado' }}">{{ $distribuicao->responsavel ?? 'Não informado' }}</td>
+                            <td class="py-3 whitespace-nowrap">
                                 <span @class([
                                     'inline-flex px-2 py-0.5 rounded-sm text-xs font-medium',
-                                    'bg-emerald-50 text-emerald-700' => in_array($distribuicao->status, [\App\Models\Distribuicao::STATUS_ENTREGUE, \App\Models\Distribuicao::STATUS_PAGA]),
-                                    'bg-amber-50 text-amber-700' => $distribuicao->status === \App\Models\Distribuicao::STATUS_PENDENTE,
-                                    'bg-red-50 text-[#f53003]' => $distribuicao->status === \App\Models\Distribuicao::STATUS_CANCELADA,
-                                ])>{{ ucfirst($distribuicao->status) }}</span>
+                                    'bg-emerald-50 text-emerald-700' => $distribuicao->isPago(),
+                                    'bg-amber-50 text-amber-700' => $distribuicao->isPendente(),
+                                    'bg-red-50 text-[#f53003]' => $distribuicao->isCancelado(),
+                                ])>{{ $distribuicao->statusLabel() }}</span>
                             </td>
-                            <td class="py-3 text-right">
+                            <td class="py-3 text-right app-table__actions">
                                 <div class="app-table-actions">
                                     @if ($distribuicao->pagamento && $distribuicao->pagamento->status === \App\Models\Pagamento::STATUS_PAGO)
-                                        <a href="{{ route('pagamentos.pix', $distribuicao->pagamento) }}" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Ver PIX</a>
+                                        <a href="{{ route('pagamentos.comprovante', $distribuicao->pagamento) }}" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Comprovante</a>
                                     @elseif ($distribuicao->cesta)
                                         <form action="{{ route('pagamentos.pagar', $distribuicao) }}" method="POST">
                                             @csrf
@@ -92,11 +101,17 @@
                                             class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">
                                         Editar
                                     </button>
-                                    <form action="{{ route('distribuicoes.destroy', $distribuicao) }}" method="POST"
-                                          onsubmit="return confirm('Remover esta distribuição?');">
+                                    <form id="form-remover-distribuicao-{{ $distribuicao->id }}" action="{{ route('distribuicoes.destroy', $distribuicao) }}" method="POST" class="contents">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Remover</button>
+                                        <button type="button"
+                                                data-confirm-delete
+                                                data-confirm-form="form-remover-distribuicao-{{ $distribuicao->id }}"
+                                                data-confirm-title="Excluir distribuição"
+                                                data-confirm-message="Deseja realmente excluir a distribuição #{{ $distribuicao->id }} de {{ $distribuicao->familia?->nome_responsavel ?? 'família removida' }}? Esta ação não pode ser desfeita."
+                                                class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">
+                                            Remover
+                                        </button>
                                     </form>
                                 </div>
                             </td>
@@ -152,7 +167,7 @@
                     <div>
                         <label for="statusDistribuicao" class="block text-sm font-medium mb-1">Status</label>
                         <select id="statusDistribuicao" name="status" required class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
-                            @foreach (['pendente' => 'Pendente', 'entregue' => 'Entregue', 'cancelada' => 'Cancelada'] as $value => $label)
+                            @foreach (\App\Models\Distribuicao::statusOpcoes() as $value => $label)
                                 <option value="{{ $value }}" @selected(old('form_context') === 'distribuicao-store' && old('status', 'pendente') === $value)>{{ $label }}</option>
                             @endforeach
                         </select>
@@ -181,7 +196,9 @@
             $distribuicaoEditContext = 'distribuicao-update-'.$distribuicao->id;
             $editFamiliaId = old('form_context') === $distribuicaoEditContext ? old('familia_id') : $distribuicao->familia_id;
             $editCestaId = old('form_context') === $distribuicaoEditContext ? old('cesta_id') : $distribuicao->cesta_id;
-            $editStatus = old('form_context') === $distribuicaoEditContext ? old('status') : $distribuicao->status;
+            $editStatus = old('form_context') === $distribuicaoEditContext
+                ? \App\Models\Distribuicao::normalizeStatus(old('status'))
+                : \App\Models\Distribuicao::normalizeStatus($distribuicao->status);
         @endphp
         <dialog id="modalEditarDistribuicao{{ $distribuicao->id }}" data-form-dialog @if ($errors->any() && old('form_context') === $distribuicaoEditContext) data-reopen="true" @endif
                 class="app-dialog backdrop:bg-black/40 bg-transparent p-0 rounded-lg" style="--dialog-width: 32rem">
@@ -229,7 +246,7 @@
                         <div>
                             <label for="statusDistribuicao{{ $distribuicao->id }}" class="block text-sm font-medium mb-1">Status</label>
                             <select id="statusDistribuicao{{ $distribuicao->id }}" name="status" required class="w-full text-sm border border-[#e3e3e0] rounded-sm px-3 py-2 focus:outline-none focus:border-[#1b1b18]">
-                                @foreach (['pendente' => 'Pendente', 'entregue' => 'Entregue', 'cancelada' => 'Cancelada'] as $value => $label)
+                                @foreach (\App\Models\Distribuicao::statusOpcoes() as $value => $label)
                                     <option value="{{ $value }}" @selected($editStatus === $value)>{{ $label }}</option>
                                 @endforeach
                             </select>

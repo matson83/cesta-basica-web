@@ -64,10 +64,10 @@ class CestaBasicaSeeder extends Seeder
             ['nome_responsavel' => 'Fernanda Costa', 'cpf' => '654.321.789-00', 'num_membros' => 6, 'telefone' => '(11) 96543-2109', 'bairro' => 'Centro', 'endereco' => 'Rua Verde, 88', 'ativo' => true],
         ])->map(fn (array $dados) => Familia::create($dados));
 
-        Distribuicao::create(['familia_id' => $familias[0]->id, 'cesta_id' => $cestaBasica->id, 'data_entrega' => now()->subDays(3), 'responsavel' => 'Admin', 'status' => Distribuicao::STATUS_ENTREGUE]);
+        Distribuicao::create(['familia_id' => $familias[0]->id, 'cesta_id' => $cestaBasica->id, 'data_entrega' => now()->subDays(3), 'responsavel' => 'Admin', 'status' => Distribuicao::STATUS_PAGO]);
         Distribuicao::create(['familia_id' => $familias[1]->id, 'cesta_id' => $cestaBasica->id, 'data_entrega' => now()->subDays(4), 'responsavel' => 'Admin', 'status' => Distribuicao::STATUS_PENDENTE]);
-        Distribuicao::create(['familia_id' => $familias[2]->id, 'cesta_id' => $cestaProtecao->id, 'data_entrega' => now()->subDays(5), 'responsavel' => 'Admin', 'status' => Distribuicao::STATUS_ENTREGUE]);
-        Distribuicao::create(['familia_id' => $familias[3]->id, 'cesta_id' => $cestaBasica->id, 'data_entrega' => now()->subDays(6), 'responsavel' => 'Admin', 'status' => Distribuicao::STATUS_ENTREGUE]);
-        Distribuicao::create(['familia_id' => $familias[4]->id, 'cesta_id' => $cestaBasica->id, 'data_entrega' => now()->subDays(7), 'responsavel' => 'Admin', 'status' => Distribuicao::STATUS_CANCELADA]);
+        Distribuicao::create(['familia_id' => $familias[2]->id, 'cesta_id' => $cestaProtecao->id, 'data_entrega' => now()->subDays(5), 'responsavel' => 'Admin', 'status' => Distribuicao::STATUS_PAGO]);
+        Distribuicao::create(['familia_id' => $familias[3]->id, 'cesta_id' => $cestaBasica->id, 'data_entrega' => now()->subDays(6), 'responsavel' => 'Admin', 'status' => Distribuicao::STATUS_PAGO]);
+        Distribuicao::create(['familia_id' => $familias[4]->id, 'cesta_id' => $cestaBasica->id, 'data_entrega' => now()->subDays(7), 'responsavel' => 'Admin', 'status' => Distribuicao::STATUS_CANCELADO]);
     }
 }

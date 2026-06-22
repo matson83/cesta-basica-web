@@ -43,6 +43,8 @@
 
     @include('partials.footer')
 
+    @include('partials.confirm-delete-dialog')
+
     @stack('modals')
 </body>
 </html>

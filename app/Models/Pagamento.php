@@ -51,6 +51,40 @@ class Pagamento extends Model
         return $this->valor_centavos / 100;
     }
 
+    public function isPago(): bool
+    {
+        return $this->status === self::STATUS_PAGO;
+    }
+
+    public function numeroComprovante(): string
+    {
+        return str_pad((string) $this->id, 8, '0', STR_PAD_LEFT);
+    }
+
+    public function dataPagamento(): ?\Illuminate\Support\Carbon
+    {
+        $payload = $this->payload_gateway ?? [];
+        $tx = $payload['transaction'] ?? $payload;
+        $pagoEm = $tx['payed_in'] ?? $tx['paid_at'] ?? $tx['confirmed_at'] ?? null;
+
+        if (filled($pagoEm)) {
+            return \Illuminate\Support\Carbon::parse($pagoEm);
+        }
+
+        return $this->isPago() ? $this->updated_at : null;
+    }
+
+    public function identificadorTransacao(): ?string
+    {
+        if (filled($this->charge_id)) {
+            return $this->charge_id;
+        }
+
+        $payload = $this->payload_gateway ?? [];
+
+        return $payload['transaction']['id'] ?? $payload['id'] ?? null;
+    }
+
     /**
      * @return BelongsTo<Distribuicao, $this>
      */

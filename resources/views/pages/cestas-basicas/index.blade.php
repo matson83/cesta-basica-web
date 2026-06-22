@@ -61,11 +61,17 @@
                                 <div class="app-table-actions">
                                     <a href="{{ route('cestas-basicas.show', $cesta) }}" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Visualizar</a>
                                     <a href="{{ route('cestas-basicas.edit', $cesta) }}" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Editar</a>
-                                    <form action="{{ route('cestas-basicas.destroy', $cesta) }}" method="POST"
-                                          onsubmit="return confirm('Remover esta cesta?');">
+                                    <form id="form-remover-cesta-{{ $cesta->id }}" action="{{ route('cestas-basicas.destroy', $cesta) }}" method="POST" class="contents">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Remover</button>
+                                        <button type="button"
+                                                data-confirm-delete
+                                                data-confirm-form="form-remover-cesta-{{ $cesta->id }}"
+                                                data-confirm-title="Excluir cesta"
+                                                data-confirm-message="Deseja realmente excluir a cesta &quot;{{ $cesta->nome }}&quot;? Esta ação não pode ser desfeita."
+                                                class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">
+                                            Remover
+                                        </button>
                                     </form>
                                 </div>
                             </td>

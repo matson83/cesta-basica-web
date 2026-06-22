@@ -59,8 +59,8 @@ class PagamentoSync
         }
 
         Distribuicao::where('id', $pagamento->distribuicao_id)
-            ->whereIn('status', [Distribuicao::STATUS_PENDENTE])
-            ->update(['status' => Distribuicao::STATUS_PAGA]);
+            ->where('status', Distribuicao::STATUS_PENDENTE)
+            ->update(['status' => Distribuicao::STATUS_PAGO]);
     }
 
     /**
