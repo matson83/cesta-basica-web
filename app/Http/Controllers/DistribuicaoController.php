@@ -16,7 +16,7 @@ class DistribuicaoController extends Controller
         $distribuicoes = Distribuicao::query()
             ->with(['familia', 'cesta.produtos', 'pagamento'])
             ->when($request->string('status')->toString(), function ($query, string $status) {
-                $query->where('status', $status);
+                $query->whereIn('status', self::statusValuesForFilter($status));
             })
             ->when($request->date('data'), function ($query, $data) {
                 $query->whereDate('data_entrega', $data);
@@ -28,8 +28,8 @@ class DistribuicaoController extends Controller
             'mes' => Distribuicao::whereMonth('data_entrega', now()->month)
                 ->whereYear('data_entrega', now()->year)
                 ->count(),
-            'pendentes' => Distribuicao::where('status', Distribuicao::STATUS_PENDENTE)->count(),
-            'entregues' => Distribuicao::where('status', Distribuicao::STATUS_ENTREGUE)->count(),
+            'pendentes' => Distribuicao::whereIn('status', self::statusValuesForFilter(Distribuicao::STATUS_PENDENTE))->count(),
+            'pagas' => Distribuicao::whereIn('status', self::statusValuesForFilter(Distribuicao::STATUS_PAGO))->count(),
         ];
 
         $familias = Familia::where('ativo', true)->orderBy('nome_responsavel')->get();
@@ -49,7 +49,11 @@ class DistribuicaoController extends Controller
 
     public function update(Request $request, Distribuicao $distribuicao): RedirectResponse
     {
-        $distribuicao->update($this->validateData($request));
+        if (! $distribuicao->update($this->validateData($request))) {
+            return redirect()
+                ->route('distribuicoes.index')
+                ->with('error', 'Não foi possível atualizar a distribuição.');
+        }
 
         return redirect()
             ->route('distribuicoes.index')
@@ -70,13 +74,33 @@ class DistribuicaoController extends Controller
      */
     private function validateData(Request $request): array
     {
-        return $request->validate([
+        $request->merge([
+            'cesta_id' => $request->filled('cesta_id') ? $request->input('cesta_id') : null,
+        ]);
+
+        $data = $request->validate([
             'familia_id' => ['required', 'exists:familias,id'],
             'cesta_id' => ['nullable', 'exists:cestas,id'],
             'data_entrega' => ['required', 'date'],
             'responsavel' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'in:pendente,entregue,cancelada'],
+            'status' => ['required', 'in:'.implode(',', Distribuicao::statusValidos())],
             'observacoes' => ['nullable', 'string'],
         ]);
+
+        $data['status'] = Distribuicao::normalizeStatus($data['status']);
+
+        return $data;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function statusValuesForFilter(string $status): array
+    {
+        return match (Distribuicao::normalizeStatus($status)) {
+            Distribuicao::STATUS_PAGO => [Distribuicao::STATUS_PAGO, 'paga', 'entregue'],
+            Distribuicao::STATUS_CANCELADO => [Distribuicao::STATUS_CANCELADO, 'cancelada'],
+            default => [Distribuicao::STATUS_PENDENTE],
+        };
     }
 }

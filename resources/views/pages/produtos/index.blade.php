@@ -65,11 +65,17 @@
                                             class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">
                                         Editar
                                     </button>
-                                    <form action="{{ route('produtos.destroy', $produto) }}" method="POST"
-                                          onsubmit="return confirm('Remover este produto?');">
+                                    <form id="form-remover-produto-{{ $produto->id }}" action="{{ route('produtos.destroy', $produto) }}" method="POST" class="contents">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Remover</button>
+                                        <button type="button"
+                                                data-confirm-delete
+                                                data-confirm-form="form-remover-produto-{{ $produto->id }}"
+                                                data-confirm-title="Excluir produto"
+                                                data-confirm-message="Deseja realmente excluir o produto &quot;{{ $produto->nome }}&quot;? Esta ação não pode ser desfeita."
+                                                class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">
+                                            Remover
+                                        </button>
                                     </form>
                                 </div>
                             </td>

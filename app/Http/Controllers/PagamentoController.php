@@ -30,7 +30,7 @@ class PagamentoController extends Controller
         if ($pagamento = $distribuicao->pagamento) {
             if ($pagamento->status === Pagamento::STATUS_PAGO) {
                 return redirect()
-                    ->route('pagamentos.pix', $pagamento)
+                    ->route('pagamentos.comprovante', $pagamento)
                     ->with('status', 'Esta distribuição já foi paga.');
             }
 
@@ -59,12 +59,26 @@ class PagamentoController extends Controller
         }
 
         if ($pagamento->status === Pagamento::STATUS_PAGO) {
-            return redirect()
-                ->route('distribuicoes.index')
-                ->with('status', 'Pagamento PIX confirmado com sucesso.');
+            return redirect()->route('pagamentos.comprovante', $pagamento);
         }
 
         return view('pages.cestas-basicas.pix', compact('pagamento'));
+    }
+
+    public function comprovante(Pagamento $pagamento): View|RedirectResponse
+    {
+        if (! $pagamento->isPago()) {
+            return redirect()
+                ->route('pagamentos.pix', $pagamento)
+                ->with('error', 'O comprovante só está disponível para pagamentos confirmados.');
+        }
+
+        $pagamento->loadMissing([
+            'distribuicao.familia',
+            'distribuicao.cesta.produtos',
+        ]);
+
+        return view('pages.pagamentos.comprovante', compact('pagamento'));
     }
 
     /**
@@ -82,7 +96,7 @@ class PagamentoController extends Controller
             'pago' => $pagamento->status === Pagamento::STATUS_PAGO,
             'finalizado' => $pagamento->status !== Pagamento::STATUS_PENDENTE,
             'redirect' => $pagamento->status === Pagamento::STATUS_PAGO
-                ? route('distribuicoes.index')
+                ? route('pagamentos.comprovante', $pagamento)
                 : null,
         ]);
     }

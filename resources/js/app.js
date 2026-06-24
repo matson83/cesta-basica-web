@@ -25,6 +25,47 @@ document.querySelectorAll('dialog[data-form-dialog]').forEach((dialog) => {
     }
 });
 
+const confirmDeleteDialog = document.getElementById('modalConfirmDelete');
+const confirmDeleteTitle = document.getElementById('confirmDeleteTitle');
+const confirmDeleteMessage = document.getElementById('confirmDeleteMessage');
+const confirmDeleteSubmit = document.getElementById('confirmDeleteSubmit');
+
+let pendingDeleteForm = null;
+
+document.querySelectorAll('[data-confirm-delete]').forEach((trigger) => {
+    trigger.addEventListener('click', () => {
+        const formId = trigger.dataset.confirmForm;
+        const form = formId ? document.getElementById(formId) : trigger.closest('form');
+
+        if (!(form instanceof HTMLFormElement) || !(confirmDeleteDialog instanceof HTMLDialogElement)) {
+            return;
+        }
+
+        pendingDeleteForm = form;
+
+        if (confirmDeleteTitle) {
+            confirmDeleteTitle.textContent = trigger.dataset.confirmTitle || 'Confirmar exclusão';
+        }
+
+        if (confirmDeleteMessage) {
+            confirmDeleteMessage.textContent = trigger.dataset.confirmMessage
+                || 'Deseja realmente excluir este item? Esta ação não pode ser desfeita.';
+        }
+
+        confirmDeleteDialog.showModal();
+    });
+});
+
+confirmDeleteSubmit?.addEventListener('click', () => {
+    pendingDeleteForm?.requestSubmit();
+    pendingDeleteForm = null;
+    confirmDeleteDialog?.close();
+});
+
+confirmDeleteDialog?.addEventListener('close', () => {
+    pendingDeleteForm = null;
+});
+
 document.querySelectorAll('[data-table-search]').forEach((input) => {
     const table = document.querySelector(input.dataset.tableSearch);
     const rows = table?.querySelectorAll('tbody tr[data-search-row]');

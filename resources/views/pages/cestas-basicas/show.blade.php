@@ -29,10 +29,17 @@
                 </div>
                 <div class="flex flex-col sm:flex-row gap-2">
                     <a href="{{ route('cestas-basicas.edit', $cesta) }}" class="inline-flex justify-center px-3 py-2 sm:py-1.5 text-sm border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Editar</a>
-                    <form action="{{ route('cestas-basicas.destroy', $cesta) }}" method="POST" onsubmit="return confirm('Remover esta cesta?');">
+                    <form id="form-remover-cesta-{{ $cesta->id }}" action="{{ route('cestas-basicas.destroy', $cesta) }}" method="POST" class="contents">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="w-full px-3 py-2 sm:py-1.5 text-sm border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Remover</button>
+                        <button type="button"
+                                data-confirm-delete
+                                data-confirm-form="form-remover-cesta-{{ $cesta->id }}"
+                                data-confirm-title="Excluir cesta"
+                                data-confirm-message="Deseja realmente excluir a cesta &quot;{{ $cesta->nome }}&quot;? Esta ação não pode ser desfeita."
+                                class="w-full px-3 py-2 sm:py-1.5 text-sm border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">
+                            Remover
+                        </button>
                     </form>
                 </div>
             </div>

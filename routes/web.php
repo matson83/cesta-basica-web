@@ -16,7 +16,8 @@ Route::resource('familias', FamiliaController::class)
     ->only(['index', 'store', 'update', 'destroy']);
 
 Route::resource('distribuicoes', DistribuicaoController::class)
-    ->only(['index', 'store', 'update', 'destroy']);
+    ->only(['index', 'store', 'update', 'destroy'])
+    ->parameters(['distribuicoes' => 'distribuicao']);
 
 Route::resource('cestas-basicas', CestaBasicaController::class);
 
@@ -24,6 +25,7 @@ Route::resource('cestas-basicas', CestaBasicaController::class);
 Route::controller(PagamentoController::class)->group(function () {
     Route::post('distribuicoes/{distribuicao}/pagar', 'pagar')->name('pagamentos.pagar');
     Route::get('pagamentos/{pagamento}/pix', 'pix')->name('pagamentos.pix');
+    Route::get('pagamentos/{pagamento}/comprovante', 'comprovante')->name('pagamentos.comprovante');
     Route::get('pagamentos/{pagamento}/status', 'status')->name('pagamentos.status');
 });
 

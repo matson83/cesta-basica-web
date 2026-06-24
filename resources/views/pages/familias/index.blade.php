@@ -65,11 +65,17 @@
                                             class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">
                                         Editar
                                     </button>
-                                    <form action="{{ route('familias.destroy', $familia) }}" method="POST"
-                                          onsubmit="return confirm('Remover esta família?');">
+                                    <form id="form-remover-familia-{{ $familia->id }}" action="{{ route('familias.destroy', $familia) }}" method="POST" class="contents">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">Remover</button>
+                                        <button type="button"
+                                                data-confirm-delete
+                                                data-confirm-form="form-remover-familia-{{ $familia->id }}"
+                                                data-confirm-title="Excluir família"
+                                                data-confirm-message="Deseja realmente excluir a família &quot;{{ $familia->nome_responsavel }}&quot;? Esta ação não pode ser desfeita."
+                                                class="px-2 py-1 text-xs border border-[#e3e3e0] rounded-sm hover:border-[#1b1b18] transition-colors">
+                                            Remover
+                                        </button>
                                     </form>
                                 </div>
                             </td>
