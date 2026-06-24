@@ -11,9 +11,9 @@
 
 @layer components {
     .app-table-wrap {
-        margin-inline: -1.25rem;
+        max-width: 100%;
         overflow-x: auto;
-        padding-inline: 1.25rem;
+        overscroll-behavior-x: contain;
     }
 
     .app-table {
@@ -46,8 +46,12 @@
     }
 
     .app-dialog {
+        inset: 50% auto auto 50%;
+        margin: 0;
         max-height: calc(100dvh - 2rem);
         overflow-y: auto;
+        position: fixed;
+        transform: translate(-50%, -50%);
         width: min(calc(100vw - 2rem), var(--dialog-width, 32rem));
     }
 

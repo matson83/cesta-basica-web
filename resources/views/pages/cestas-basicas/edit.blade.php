@@ -44,18 +44,13 @@
                         @php
                             $pivot = $cesta->produtos->firstWhere('id', $p->id)?->pivot;
                             $produtoQuantidade = old("product.{$p->id}.qty", $pivot->quantidade ?? 0);
-                            $produtoSelecionado = old("product.{$p->id}.selected", $pivot ? '1' : null);
                         @endphp
-                        <label class="flex flex-col gap-2 rounded-sm border border-[#e3e3e0] p-3 sm:flex-row sm:items-center sm:border-0 sm:p-0">
-                            <span class="flex items-center gap-3 min-w-0 sm:flex-1">
-                                <input type="checkbox" name="product[{{ $p->id }}][selected]" value="1" data-preco="{{ $p->preco }}" class="produto-check" @checked($produtoSelecionado || (int) $produtoQuantidade > 0)>
-                                <span class="min-w-0 flex-1">{{ $p->nome }}</span>
-                            </span>
-                            <span class="grid grid-cols-[minmax(0,1fr)_6rem] items-center gap-3 sm:flex sm:justify-end">
-                                <input name="product[{{ $p->id }}][qty]" type="number" min="0" value="{{ $produtoQuantidade }}" class="w-full sm:w-20 text-sm border border-[#e3e3e0] rounded-sm px-2 py-1 produto-qtd" data-preco="{{ $p->preco }}">
-                                <span class="text-right whitespace-nowrap">R$ {{ number_format($p->preco, 2, ',', '.') }}</span>
-                            </span>
-                        </label>
+                        <div class="grid grid-cols-1 gap-2 rounded-sm border border-[#e3e3e0] p-3 sm:grid-cols-[minmax(0,1fr)_5rem_6rem] sm:items-center sm:border-0 sm:p-0" data-produto-row>
+                            <input type="hidden" name="product[{{ $p->id }}][selected]" value="{{ (int) $produtoQuantidade > 0 ? 1 : 0 }}" class="produto-selected">
+                            <label for="produtoQtdEditar{{ $p->id }}" class="min-w-0 text-sm">{{ $p->nome }}</label>
+                            <input id="produtoQtdEditar{{ $p->id }}" name="product[{{ $p->id }}][qty]" type="number" min="0" value="{{ $produtoQuantidade }}" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-2 py-1 produto-qtd" data-preco="{{ $p->preco }}">
+                            <span class="text-left sm:text-right whitespace-nowrap">R$ {{ number_format($p->preco, 2, ',', '.') }}</span>
+                        </div>
                     @empty
                         <p class="text-sm text-[#706f6c]">Nenhum produto cadastrado.</p>
                     @endforelse
@@ -77,20 +72,24 @@
             (function(){
                 function calc(){
                     let total = 0;
-                    const checks = document.querySelectorAll('.produto-check');
                     const quantidades = document.querySelectorAll('.produto-qtd');
 
-                    checks.forEach((cb, i)=>{
-                        const qtd = Number(quantidades[i].value || 0);
-                        const preco = Number(quantidades[i].dataset.preco || cb.dataset.preco || 0);
-                        if((cb.checked || qtd > 0) && qtd > 0){
-                            total += qtd * preco;
+                    quantidades.forEach((input)=>{
+                        const qtd = Number(input.value || 0);
+                        const selected = input.closest('[data-produto-row]')?.querySelector('.produto-selected');
+
+                        if (selected) {
+                            selected.value = qtd > 0 ? '1' : '0';
+                        }
+
+                        if(qtd > 0){
+                            total += qtd * Number(input.dataset.preco || 0);
                         }
                     });
 
                     document.getElementById('totalCesta').textContent = 'R$ ' + total.toFixed(2).replace('.',',');
                 }
-                document.querySelectorAll('.produto-check, .produto-qtd').forEach(el=>el.addEventListener('input', calc));
+                document.querySelectorAll('.produto-qtd').forEach(el=>el.addEventListener('input', calc));
                 calc();
             })();
         </script>

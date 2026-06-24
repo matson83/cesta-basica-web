@@ -3,6 +3,10 @@ document.querySelectorAll('[data-dialog-open]').forEach((trigger) => {
         const dialog = document.getElementById(trigger.dataset.dialogOpen);
 
         if (dialog instanceof HTMLDialogElement) {
+            if (dialog.open) {
+                dialog.close();
+            }
+
             dialog.showModal();
         }
     });
