@@ -120,7 +120,7 @@
                         if (data.finalizado) {
                             clearInterval(timer);
                             if (data.pago) {
-                                window.location.href = data.redirect || @json(route('pagamentos.comprovante', $pagamento));
+                                window.location.href = data.redirect || @json(route('pagamentos.sucesso', $pagamento));
                                 return;
                             }
                             aviso?.classList.add('hidden');

@@ -161,7 +161,6 @@ class CestaBasicaController extends Controller
             'categoria' => ['nullable', 'string', 'max:255'],
             'ativo' => ['boolean'],
             'product' => ['array'],
-            'product.*.selected' => ['nullable'],
             'product.*.qty' => ['nullable', 'integer', 'min:0'],
         ]);
     }
@@ -178,9 +177,8 @@ class CestaBasicaController extends Controller
 
         foreach ($produtos as $produtoId => $dados) {
             $quantidade = (int) ($dados['qty'] ?? 0);
-            $selecionado = ! empty($dados['selected']) || $quantidade > 0;
 
-            if ($selecionado && $quantidade > 0) {
+            if ($quantidade > 0) {
                 $sync[$produtoId] = ['quantidade' => $quantidade];
             }
         }

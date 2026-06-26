@@ -33,27 +33,27 @@
                 <h2 class="text-sm font-semibold">Últimas distribuições</h2>
             </div>
             <div class="app-table-wrap">
-                <table class="app-table text-sm" style="--table-min-width: 42rem">
+                <table class="app-table text-sm border-separate border-spacing-0">
                     <thead>
-                        <tr class="border-t border-[#e3e3e0] text-left text-[#706f6c]">
-                            <th class="px-5 py-2 font-medium">Data</th>
-                            <th class="px-5 py-2 font-medium">Família</th>
-                            <th class="px-5 py-2 font-medium">Itens</th>
-                            <th class="px-5 py-2 font-medium">Status</th>
+                        <tr class="text-left text-[#706f6c]">
+                            <th class="px-5 py-2 font-medium border-y border-[#e3e3e0]">Data</th>
+                            <th class="px-5 py-2 font-medium border-y border-[#e3e3e0]">Família</th>
+                            <th class="px-5 py-2 font-medium border-y border-[#e3e3e0]">Itens</th>
+                            <th class="px-5 py-2 font-medium border-y border-[#e3e3e0]">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[#e3e3e0]">
+                    <tbody>
                         @foreach ([
                             ['data' => '10/06/2026', 'familia' => 'Maria Silva', 'itens' => 8, 'status' => 'Entregue', 'badge' => 'bg-emerald-50 text-emerald-700'],
                             ['data' => '09/06/2026', 'familia' => 'João Santos', 'itens' => 8, 'status' => 'Pendente', 'badge' => 'bg-amber-50 text-amber-700'],
                             ['data' => '08/06/2026', 'familia' => 'Ana Oliveira', 'itens' => 7, 'status' => 'Entregue', 'badge' => 'bg-emerald-50 text-emerald-700'],
                             ['data' => '07/06/2026', 'familia' => 'Carlos Pereira', 'itens' => 8, 'status' => 'Entregue', 'badge' => 'bg-emerald-50 text-emerald-700'],
                         ] as $row)
-                            <tr class="hover:bg-[#FDFDFC]">
-                                <td class="px-5 py-3">{{ $row['data'] }}</td>
-                                <td class="px-5 py-3 font-medium">{{ $row['familia'] }}</td>
-                                <td class="px-5 py-3">{{ $row['itens'] }}</td>
-                                <td class="px-5 py-3">
+                            <tr class="hover:bg-[#FDFDFC] transition-colors">
+                                <td class="px-5 py-3 border-b border-[#e3e3e0]">{{ $row['data'] }}</td>
+                                <td class="px-5 py-3 font-medium border-b border-[#e3e3e0]">{{ $row['familia'] }}</td>
+                                <td class="px-5 py-3 border-b border-[#e3e3e0]">{{ $row['itens'] }}</td>
+                                <td class="px-5 py-3 border-b border-[#e3e3e0]">
                                     <span class="inline-flex px-2 py-0.5 rounded-sm text-xs font-medium {{ $row['badge'] }}">{{ $row['status'] }}</span>
                                 </td>
                             </tr>
@@ -61,7 +61,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="px-5 py-4 text-right border-t border-[#e3e3e0]">
+            <div class="px-5 py-4 text-right">
                 <a href="{{ route('distribuicoes.index') }}" class="text-sm text-[#f53003] font-medium hover:underline">Ver todas</a>
             </div>
         </div>

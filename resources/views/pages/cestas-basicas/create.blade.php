@@ -38,21 +38,7 @@
 
             <div>
                 <p class="text-sm font-medium mb-2">Produtos</p>
-                <div class="space-y-2">
-                    @forelse ($produtos as $p)
-                        @php
-                            $produtoQuantidade = old("product.{$p->id}.qty", 0);
-                        @endphp
-                        <div class="grid grid-cols-1 gap-2 rounded-sm border border-[#e3e3e0] p-3 sm:grid-cols-[minmax(0,1fr)_5rem_6rem] sm:items-center sm:border-0 sm:p-0" data-produto-row>
-                            <input type="hidden" name="product[{{ $p->id }}][selected]" value="{{ (int) $produtoQuantidade > 0 ? 1 : 0 }}" class="produto-selected">
-                            <label for="produtoQtdCriar{{ $p->id }}" class="min-w-0 text-sm">{{ $p->nome }}</label>
-                            <input id="produtoQtdCriar{{ $p->id }}" name="product[{{ $p->id }}][qty]" type="number" min="0" value="{{ $produtoQuantidade }}" data-preco="{{ $p->preco }}" class="w-full text-sm border border-[#e3e3e0] rounded-sm px-2 py-1 produto-qtd">
-                            <span class="text-left sm:text-right whitespace-nowrap">R$ {{ number_format($p->preco, 2, ',', '.') }}</span>
-                        </div>
-                    @empty
-                        <p class="text-sm text-[#706f6c]">Nenhum produto cadastrado. Cadastre produtos antes de montar uma cesta.</p>
-                    @endforelse
-                </div>
+                @include('partials.cesta-produtos-picker', ['produtos' => $produtos])
             </div>
 
             <div class="border-t border-[#e3e3e0] pt-4">
@@ -130,30 +116,6 @@
 
     @push('modals')
         <script>
-            (function(){
-                function calc(){
-                    let total = 0;
-                    const quantidades = document.querySelectorAll('.produto-qtd');
-
-                    quantidades.forEach((input)=>{
-                        const qtd = Number(input.value || 0);
-                        const selected = input.closest('[data-produto-row]')?.querySelector('.produto-selected');
-
-                        if (selected) {
-                            selected.value = qtd > 0 ? '1' : '0';
-                        }
-
-                        if(qtd > 0){
-                            total += qtd * Number(input.dataset.preco || 0);
-                        }
-                    });
-
-                    document.getElementById('totalCesta').textContent = 'R$ ' + total.toFixed(2).replace('.',',');
-                }
-                document.querySelectorAll('.produto-qtd').forEach(el=>el.addEventListener('input', calc));
-                calc();
-            })();
-
             (function(){
                 const existente = document.querySelector('[data-familia="existente"]');
                 const nova = document.querySelector('[data-familia="nova"]');
