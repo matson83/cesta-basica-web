@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToEmpresa;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Pagamento extends Model
 {
-    use HasFactory;
+    use BelongsToEmpresa, HasFactory;
 
     public const STATUS_PENDENTE = 'pendente';
 
@@ -21,6 +22,7 @@ class Pagamento extends Model
     protected $table = 'pagamentos';
 
     protected $fillable = [
+        'empresa_id',
         'distribuicao_id',
         'referencia',
         'charge_id',

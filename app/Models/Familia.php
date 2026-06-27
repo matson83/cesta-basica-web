@@ -2,17 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToEmpresa;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Familia extends Model
 {
-    use HasFactory;
+    use BelongsToEmpresa, HasFactory;
 
     protected $table = 'familias';
 
     protected $fillable = [
+        'empresa_id',
         'nome_responsavel',
         'cpf',
         'num_membros',

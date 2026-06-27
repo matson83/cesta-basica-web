@@ -46,6 +46,24 @@ return [
     | Docs: https://doc.confrapix.com.br/
     |
     */
+    /*
+    |--------------------------------------------------------------------------
+    | Evolution API (gateway de WhatsApp)
+    |--------------------------------------------------------------------------
+    |
+    | Usado para o envio automático das mensagens de impulsionamento a partir do
+    | número do gestor (conectado via QR Code na Evolution API). Quando as
+    | credenciais não estão definidas, o sistema cai no envio manual (wa.me).
+    | Docs: https://doc.evolution-api.com/
+    |
+    */
+    'evolution' => [
+        'base_url' => env('EVOLUTION_API_URL'),
+        'api_key' => env('EVOLUTION_API_KEY'),
+        'instance' => env('EVOLUTION_INSTANCE'),
+        'timeout' => (int) env('EVOLUTION_TIMEOUT', 30),
+    ],
+
     'confrapix' => [
         'token' => env('CONFRAPIX_TOKEN'),
         'base_url' => env('CONFRAPIX_BASE_URL', 'https://api.confrapix.com.br'),

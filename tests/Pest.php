@@ -48,3 +48,36 @@ function something()
 {
     // ..
 }
+
+/**
+ * Cria uma firma (EC) com um usuário de acesso vinculado.
+ *
+ * @param  array<string, mixed>  $atributos
+ * @return array{0: \App\Models\Empresa, 1: \App\Models\User}
+ */
+function criarFirmaComUsuario(array $atributos = []): array
+{
+    $empresa = \App\Models\Empresa::create(array_merge([
+        'nome_fantasia' => 'Firma '.fake()->unique()->company(),
+        'email' => fake()->unique()->safeEmail(),
+        'confrapix_token' => 'token-teste',
+        'ativo' => true,
+    ], $atributos));
+
+    $user = \App\Models\User::factory()->create([
+        'name' => $empresa->nome_fantasia,
+        'email' => $empresa->email,
+        'role' => \App\Models\User::ROLE_EMPRESA,
+        'empresa_id' => $empresa->id,
+    ]);
+
+    return [$empresa, $user];
+}
+
+function criarGestor(): \App\Models\User
+{
+    return \App\Models\User::factory()->create([
+        'role' => \App\Models\User::ROLE_GESTOR,
+        'empresa_id' => null,
+    ]);
+}

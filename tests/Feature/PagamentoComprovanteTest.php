@@ -9,8 +9,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function () {
+    [$this->empresa, $this->user] = criarFirmaComUsuario();
+    $this->actingAs($this->user);
+});
+
 it('exibe comprovante para pagamento confirmado', function () {
     $familia = Familia::create([
+        'empresa_id' => $this->empresa->id,
         'nome_responsavel' => 'Maria Silva',
         'cpf' => '123.456.789-00',
         'num_membros' => 4,
@@ -20,15 +26,17 @@ it('exibe comprovante para pagamento confirmado', function () {
     ]);
 
     $produto = Produto::create([
+        'empresa_id' => $this->empresa->id,
         'nome' => 'Arroz 5kg',
         'preco' => 25.90,
         'estoque' => 10,
     ]);
 
-    $cesta = Cesta::create(['nome' => 'Cesta Básica', 'ativo' => true]);
+    $cesta = Cesta::create(['empresa_id' => $this->empresa->id, 'nome' => 'Cesta Básica', 'ativo' => true]);
     $cesta->produtos()->attach($produto->id, ['quantidade' => 2]);
 
     $distribuicao = Distribuicao::create([
+        'empresa_id' => $this->empresa->id,
         'familia_id' => $familia->id,
         'cesta_id' => $cesta->id,
         'data_entrega' => now()->toDateString(),
@@ -37,6 +45,7 @@ it('exibe comprovante para pagamento confirmado', function () {
     ]);
 
     $pagamento = Pagamento::create([
+        'empresa_id' => $this->empresa->id,
         'distribuicao_id' => $distribuicao->id,
         'referencia' => (string) str()->uuid(),
         'metodo' => 'pix',
@@ -65,6 +74,7 @@ it('exibe comprovante para pagamento confirmado', function () {
 
 it('redireciona comprovante quando pagamento ainda está pendente', function () {
     $pagamento = Pagamento::create([
+        'empresa_id' => $this->empresa->id,
         'referencia' => (string) str()->uuid(),
         'metodo' => 'pix',
         'status' => Pagamento::STATUS_PENDENTE,
@@ -77,8 +87,9 @@ it('redireciona comprovante quando pagamento ainda está pendente', function () 
     $response->assertSessionHas('error');
 });
 
-it('redireciona para comprovante após confirmação do pix', function () {
+it('redireciona para a tela de sucesso após confirmação do pix', function () {
     $pagamento = Pagamento::create([
+        'empresa_id' => $this->empresa->id,
         'referencia' => (string) str()->uuid(),
         'metodo' => 'pix',
         'status' => Pagamento::STATUS_PAGO,
@@ -87,5 +98,5 @@ it('redireciona para comprovante após confirmação do pix', function () {
 
     $response = $this->get(route('pagamentos.pix', $pagamento));
 
-    $response->assertRedirect(route('pagamentos.comprovante', $pagamento));
+    $response->assertRedirect(route('pagamentos.sucesso', $pagamento));
 });

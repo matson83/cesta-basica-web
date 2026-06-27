@@ -12,6 +12,7 @@ class ProdutoController extends Controller
     public function index(Request $request): View
     {
         $produtos = Produto::query()
+            ->where('empresa_id', $this->empresaIdAtual())
             ->when($request->string('busca')->toString(), function ($query, string $busca) {
                 $query->where('nome', 'like', "%{$busca}%");
             })
@@ -26,7 +27,9 @@ class ProdutoController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $produto = Produto::create($this->validateData($request));
+        $produto = Produto::create($this->validateData($request) + [
+            'empresa_id' => $this->empresaIdAtual(),
+        ]);
 
         return redirect()
             ->route('produtos.index')
@@ -35,6 +38,8 @@ class ProdutoController extends Controller
 
     public function update(Request $request, Produto $produto): RedirectResponse
     {
+        $this->autorizarEmpresa($produto);
+
         $produto->update($this->validateData($request));
 
         return redirect()
@@ -44,6 +49,8 @@ class ProdutoController extends Controller
 
     public function destroy(Produto $produto): RedirectResponse
     {
+        $this->autorizarEmpresa($produto);
+
         $produto->delete();
 
         return redirect()

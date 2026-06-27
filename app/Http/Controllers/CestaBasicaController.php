@@ -22,6 +22,7 @@ class CestaBasicaController extends Controller
     public function index(Request $request): View
     {
         $cestas = Cesta::query()
+            ->where('empresa_id', $this->empresaIdAtual())
             ->withCount('produtos')
             ->with('produtos')
             ->when($request->string('busca')->toString(), function ($query, string $busca) {
@@ -38,8 +39,9 @@ class CestaBasicaController extends Controller
 
     public function create(): View
     {
-        $produtos = Produto::orderBy('nome')->get();
-        $familias = Familia::where('ativo', true)->orderBy('nome_responsavel')->get();
+        $empresaId = $this->empresaIdAtual();
+        $produtos = Produto::where('empresa_id', $empresaId)->orderBy('nome')->get();
+        $familias = Familia::where('empresa_id', $empresaId)->where('ativo', true)->orderBy('nome_responsavel')->get();
 
         return view('pages.cestas-basicas.create', compact('produtos', 'familias'));
     }
@@ -48,13 +50,14 @@ class CestaBasicaController extends Controller
     {
         $data = $this->validateData($request);
         $modo = $request->input('familia_modo', 'existente');
+        $empresaId = $this->empresaIdAtual();
 
         if ($modo !== 'nenhuma') {
             $request->validate([
                 'data_entrega' => ['required', 'date'],
-                'familia_id' => [Rule::requiredIf($modo === 'existente'), 'nullable', 'exists:familias,id'],
+                'familia_id' => [Rule::requiredIf($modo === 'existente'), 'nullable', Rule::exists('familias', 'id')->where('empresa_id', $empresaId)],
                 'familia.nome_responsavel' => [Rule::requiredIf($modo === 'nova'), 'nullable', 'string', 'max:255'],
-                'familia.cpf' => [Rule::requiredIf($modo === 'nova'), 'nullable', 'string', 'max:14', 'unique:familias,cpf'],
+                'familia.cpf' => [Rule::requiredIf($modo === 'nova'), 'nullable', 'string', 'max:14', Rule::unique('familias', 'cpf')->where('empresa_id', $empresaId)],
                 'familia.num_membros' => ['nullable', 'integer', 'min:1'],
                 'familia.telefone' => ['nullable', 'string', 'max:20'],
                 'familia.bairro' => ['nullable', 'string', 'max:255'],
@@ -63,6 +66,7 @@ class CestaBasicaController extends Controller
         }
 
         $cesta = Cesta::create([
+            'empresa_id' => $empresaId,
             'nome' => $data['nome'],
             'descricao' => $data['descricao'] ?? null,
             'categoria' => $data['categoria'] ?? null,
@@ -79,6 +83,7 @@ class CestaBasicaController extends Controller
 
         $familia = $modo === 'nova'
             ? Familia::create([
+                'empresa_id' => $empresaId,
                 'nome_responsavel' => $request->input('familia.nome_responsavel'),
                 'cpf' => $request->input('familia.cpf'),
                 'num_membros' => $request->integer('familia.num_membros') ?: 1,
@@ -87,9 +92,10 @@ class CestaBasicaController extends Controller
                 'endereco' => $request->input('familia.endereco'),
                 'ativo' => true,
             ])
-            : Familia::findOrFail($request->integer('familia_id'));
+            : Familia::where('empresa_id', $empresaId)->findOrFail($request->integer('familia_id'));
 
         $distribuicao = Distribuicao::create([
+            'empresa_id' => $empresaId,
             'familia_id' => $familia->id,
             'cesta_id' => $cesta->id,
             'data_entrega' => $request->date('data_entrega'),
@@ -110,6 +116,8 @@ class CestaBasicaController extends Controller
 
     public function show(Cesta $cestas_basica): View
     {
+        $this->autorizarEmpresa($cestas_basica);
+
         $cesta = $cestas_basica->load('produtos');
 
         return view('pages.cestas-basicas.show', compact('cesta'));
@@ -117,14 +125,18 @@ class CestaBasicaController extends Controller
 
     public function edit(Cesta $cestas_basica): View
     {
+        $this->autorizarEmpresa($cestas_basica);
+
         $cesta = $cestas_basica->load('produtos');
-        $produtos = Produto::orderBy('nome')->get();
+        $produtos = Produto::where('empresa_id', $this->empresaIdAtual())->orderBy('nome')->get();
 
         return view('pages.cestas-basicas.edit', compact('cesta', 'produtos'));
     }
 
     public function update(Request $request, Cesta $cestas_basica): RedirectResponse
     {
+        $this->autorizarEmpresa($cestas_basica);
+
         $data = $this->validateData($request);
 
         $cestas_basica->update([
@@ -143,6 +155,8 @@ class CestaBasicaController extends Controller
 
     public function destroy(Cesta $cestas_basica): RedirectResponse
     {
+        $this->autorizarEmpresa($cestas_basica);
+
         $cestas_basica->delete();
 
         return redirect()

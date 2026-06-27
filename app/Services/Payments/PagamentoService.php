@@ -3,26 +3,27 @@
 namespace App\Services\Payments;
 
 use App\Models\Distribuicao;
+use App\Models\Empresa;
 use App\Models\Pagamento;
-use App\Services\Payments\Contracts\PaymentGateway;
 use App\Services\Payments\Exceptions\PaymentGatewayException;
 use Illuminate\Support\Str;
 
 class PagamentoService
 {
     public function __construct(
-        private readonly PaymentGateway $gateway,
+        private readonly PaymentGatewayFactory $gateways,
         private readonly PagamentoSync $sync,
     ) {
     }
 
     /**
      * Cria uma cobrança PIX para uma distribuição, usando o valor total da
-     * cesta e os dados da família como pagador.
+     * cesta e os dados da família como pagador. O token Confrapix utilizado é
+     * o da firma (EC) dona da distribuição.
      */
     public function criarPixParaDistribuicao(Distribuicao $distribuicao): Pagamento
     {
-        $distribuicao->loadMissing(['cesta.produtos', 'familia']);
+        $distribuicao->loadMissing(['cesta.produtos', 'familia', 'empresa']);
 
         $cesta = $distribuicao->cesta;
         $familia = $distribuicao->familia;
@@ -33,21 +34,29 @@ class PagamentoService
         }
 
         return $this->criarPix([
+            'empresa_id' => $distribuicao->empresa_id,
             'distribuicao_id' => $distribuicao->id,
             'valor_centavos' => $valorCentavos,
             'pagador_nome' => $familia?->nome_responsavel,
             'pagador_cpf' => $familia?->cpf,
             'pagador_telefone' => $familia?->telefone,
             'descricao' => trim('Cesta '.($cesta?->nome ?? '').' - '.($familia?->nome_responsavel ?? '')),
-        ]);
+        ], $distribuicao->empresa);
     }
 
     /**
      * @param  array<string, mixed>  $dados
      */
-    public function criarPix(array $dados): Pagamento
+    public function criarPix(array $dados, ?Empresa $empresa = null): Pagamento
     {
+        $empresa ??= filled($dados['empresa_id'] ?? null)
+            ? Empresa::find($dados['empresa_id'])
+            : null;
+
+        $gateway = $this->gateways->forEmpresa($empresa);
+
         $pagamento = Pagamento::create([
+            'empresa_id' => $empresa?->id ?? ($dados['empresa_id'] ?? null),
             'distribuicao_id' => $dados['distribuicao_id'] ?? null,
             'referencia' => (string) Str::uuid(),
             'metodo' => 'pix',
@@ -60,7 +69,7 @@ class PagamentoService
         ]);
 
         try {
-            $cobranca = $this->gateway->createPixCharge([
+            $cobranca = $gateway->createPixCharge([
                 'amount_in_cents' => $pagamento->valor_centavos,
                 'description' => $dados['descricao'] ?? ('Pedido '.$pagamento->referencia),
                 'reference' => $pagamento->referencia,

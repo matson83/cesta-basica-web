@@ -7,8 +7,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function () {
+    [$this->empresa, $this->user] = criarFirmaComUsuario();
+    $this->actingAs($this->user);
+});
+
 it('atualiza uma distribuição existente', function () {
     $familia = Familia::create([
+        'empresa_id' => $this->empresa->id,
         'nome_responsavel' => 'Maria Silva',
         'cpf' => '123.456.789-00',
         'num_membros' => 4,
@@ -16,11 +22,13 @@ it('atualiza uma distribuição existente', function () {
     ]);
 
     $cesta = Cesta::create([
+        'empresa_id' => $this->empresa->id,
         'nome' => 'Cesta Básica',
         'ativo' => true,
     ]);
 
     $distribuicao = Distribuicao::create([
+        'empresa_id' => $this->empresa->id,
         'familia_id' => $familia->id,
         'cesta_id' => $cesta->id,
         'data_entrega' => now()->toDateString(),
@@ -50,6 +58,7 @@ it('atualiza uma distribuição existente', function () {
 
 it('aceita cesta vazia na atualização', function () {
     $familia = Familia::create([
+        'empresa_id' => $this->empresa->id,
         'nome_responsavel' => 'João Santos',
         'cpf' => '987.654.321-00',
         'num_membros' => 3,
@@ -57,6 +66,7 @@ it('aceita cesta vazia na atualização', function () {
     ]);
 
     $distribuicao = Distribuicao::create([
+        'empresa_id' => $this->empresa->id,
         'familia_id' => $familia->id,
         'cesta_id' => null,
         'data_entrega' => now()->toDateString(),

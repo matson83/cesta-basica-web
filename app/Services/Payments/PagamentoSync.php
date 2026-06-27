@@ -4,13 +4,12 @@ namespace App\Services\Payments;
 
 use App\Models\Distribuicao;
 use App\Models\Pagamento;
-use App\Services\Payments\Contracts\PaymentGateway;
 use App\Services\Payments\Exceptions\PaymentGatewayException;
 use Illuminate\Support\Facades\Log;
 
 class PagamentoSync
 {
-    public function __construct(private readonly PaymentGateway $gateway)
+    public function __construct(private readonly PaymentGatewayFactory $gateways)
     {
     }
 
@@ -23,12 +22,13 @@ class PagamentoSync
             return false;
         }
 
+        $gateway = $this->gateways->forPagamento($pagamento);
         $alternateId = (string) ($pagamento->payload_gateway['transaction']['id'] ?? '');
 
         try {
-            $cobranca = $this->gateway instanceof ConfrapixGateway
-                ? $this->gateway->getCharge($pagamento->charge_id, array_filter([$alternateId]))
-                : $this->gateway->getCharge($pagamento->charge_id);
+            $cobranca = $gateway instanceof ConfrapixGateway
+                ? $gateway->getCharge($pagamento->charge_id, array_filter([$alternateId]))
+                : $gateway->getCharge($pagamento->charge_id);
         } catch (PaymentGatewayException $e) {
             Log::warning('Falha ao sincronizar pagamento com Confrapix', [
                 'pagamento_id' => $pagamento->id,

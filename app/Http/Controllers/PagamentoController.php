@@ -25,6 +25,8 @@ class PagamentoController extends Controller
      */
     public function pagar(Distribuicao $distribuicao): RedirectResponse
     {
+        $this->autorizarEmpresa($distribuicao);
+
         $distribuicao->loadMissing('pagamento');
 
         if ($pagamento = $distribuicao->pagamento) {
@@ -52,6 +54,8 @@ class PagamentoController extends Controller
 
     public function pix(Pagamento $pagamento): View|RedirectResponse
     {
+        $this->autorizarEmpresa($pagamento);
+
         $pagamento->loadMissing('distribuicao.familia');
 
         if ($pagamento->status === Pagamento::STATUS_PENDENTE) {
@@ -70,6 +74,8 @@ class PagamentoController extends Controller
      */
     public function sucesso(Pagamento $pagamento): View|RedirectResponse
     {
+        $this->autorizarEmpresa($pagamento);
+
         if (! $pagamento->isPago()) {
             return redirect()
                 ->route('pagamentos.pix', $pagamento)
@@ -83,6 +89,8 @@ class PagamentoController extends Controller
 
     public function comprovante(Pagamento $pagamento): View|RedirectResponse
     {
+        $this->autorizarEmpresa($pagamento);
+
         if (! $pagamento->isPago()) {
             return redirect()
                 ->route('pagamentos.pix', $pagamento)
@@ -103,6 +111,8 @@ class PagamentoController extends Controller
      */
     public function status(Pagamento $pagamento): JsonResponse
     {
+        $this->autorizarEmpresa($pagamento);
+
         if ($pagamento->status === Pagamento::STATUS_PENDENTE) {
             $this->sync->sync($pagamento->refresh());
         }

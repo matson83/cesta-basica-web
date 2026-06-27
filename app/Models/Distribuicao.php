@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToEmpresa;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Distribuicao extends Model
 {
-    use HasFactory;
+    use BelongsToEmpresa, HasFactory;
 
     protected $table = 'distribuicoes';
 
@@ -20,6 +21,7 @@ class Distribuicao extends Model
     public const STATUS_CANCELADO = 'cancelado';
 
     protected $fillable = [
+        'empresa_id',
         'familia_id',
         'cesta_id',
         'data_entrega',
